@@ -1,0 +1,19 @@
+# Dependências e artefatos de build
+/node_modules
+/.next/
+/dist/
+/out/
+
+# Arquivos locais e temporários
+/.wrangler/
+/.vinext/
+.DS_Store
+*.log
+
+# Variáveis de ambiente
+.env*
+!.env.example
+
+# TypeScript
+next-env.d.ts
+*.tsbuildinfo
