@@ -1,0 +1,133 @@
+/* ============================================================================
+   Nascente — tokens de design
+   Paleta derivada da própria fotografia da marca: vidro âmbar, couro terracota,
+   travertino, madeira escura e luz quente. Nenhum valor é escolhido no escuro —
+   cada um sai de um material que aparece nas imagens.
+   ========================================================================== */
+
+:root {
+  /* ---- Pigmentos ---- */
+  --pig-ink: #191210;          /* madeira da tampa, quase preto quente */
+  --pig-wine: #59202b;         /* rótulo vinho do hero */
+  --pig-clay: #a4523a;         /* couro terracota */
+  --pig-amber: #b9762f;        /* vidro âmbar atravessado pela luz */
+  --pig-ochre: #c99a58;        /* reflexo do vidro na luz alta */
+  --pig-paper: #f7f4ee;        /* fundo creme dos still lifes */
+  --pig-linen: #efe8dc;        /* linho e cerâmica clara */
+  --pig-travertine: #e0d5c4;   /* pedra da bancada */
+  --pig-moss: #3d4a34;         /* folhagem no fundo */
+
+  /* ---- Papéis semânticos ---- */
+  --bg: var(--pig-paper);
+  --bg-raised: #fffdf9;
+  --bg-inverse: var(--pig-ink);
+  --bg-muted: var(--pig-linen);
+  --bg-stone: var(--pig-travertine);
+
+  --ink: var(--pig-ink);
+  --ink-soft: #57453d;
+  --ink-faint: #8a7566;
+  --ink-inverse: #f7f2e9;
+  --ink-inverse-soft: rgba(247, 242, 233, 0.72);
+
+  --accent: var(--pig-wine);
+  --accent-warm: var(--pig-clay);
+  --accent-light: var(--pig-ochre);
+
+  /* Cor de interação dos botões: âmbar queimado, separada de --accent para
+     que o vinho continue disponível como cor de marca sem virar hover. */
+  --interactive: #a15f03;
+
+  --line: rgba(25, 18, 16, 0.14);
+  --line-strong: rgba(25, 18, 16, 0.28);
+  --line-inverse: rgba(247, 242, 233, 0.22);
+
+  --state-error: #a3302b;
+  --state-success: #4a6741;
+  --focus: var(--pig-clay);
+
+  /* ---- Tipografia ----
+     Bodoni Moda: didone de alto contraste, só em títulos grandes.
+     Jost: geométrica, herdeira da Futura — tudo que precisa ser lido. */
+  --font-display: "Bodoni Moda Variable", "Didot", Georgia, serif;
+  --font-sans: "Jost Variable", "Futura", system-ui, sans-serif;
+
+  /* Escala fluida. O passo cresce mais rápido nos títulos que no corpo,
+     para o contraste editorial aumentar junto com a tela. */
+  --t-2xs: 0.6875rem;
+  --t-xs: 0.75rem;
+  --t-sm: clamp(0.8125rem, 0.79rem + 0.12vw, 0.875rem);
+  --t-base: clamp(0.9375rem, 0.9rem + 0.2vw, 1rem);
+  --t-md: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  --t-lg: clamp(1.375rem, 1.2rem + 0.75vw, 1.75rem);
+  --t-xl: clamp(1.875rem, 1.5rem + 1.6vw, 2.75rem);
+  --t-2xl: clamp(2.5rem, 1.8rem + 3vw, 4.25rem);
+  --t-3xl: clamp(3.25rem, 2rem + 5.4vw, 7rem);
+  --t-4xl: clamp(4rem, 2rem + 9vw, 11rem);
+
+  --lead-tight: 0.94;
+  --lead-snug: 1.16;
+  --lead-body: 1.62;
+
+  --track-tight: -0.035em;
+  --track-normal: 0;
+  --track-wide: 0.08em;
+  --track-widest: 0.18em;
+
+  /* ---- Espaço ---- */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.5rem;
+  --s-6: 2rem;
+  --s-7: 3rem;
+  --s-8: 4.5rem;
+  --s-9: 7rem;
+  --s-10: 10rem;
+
+  --gutter: clamp(1.25rem, 4vw, 4rem);
+  --measure: 62ch;
+  --content: 84rem;
+  --content-tight: 46rem;
+  --header-h: 4.75rem;
+
+  /* ---- Forma ---- */
+  --r-xs: 2px;
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 16px;
+  --r-pill: 999px;
+
+  /* Sombras em duas camadas: luz ambiente difusa + contato direto.
+     Tonalizadas em marrom, nunca em cinza neutro. */
+  --shadow-sm: 0 1px 2px rgba(25, 18, 16, 0.05), 0 1px 3px rgba(25, 18, 16, 0.04);
+  --shadow-md: 0 8px 20px -8px rgba(25, 18, 16, 0.14), 0 2px 6px -2px rgba(25, 18, 16, 0.07);
+  --shadow-lg: 0 28px 60px -20px rgba(25, 18, 16, 0.26), 0 8px 20px -8px rgba(25, 18, 16, 0.12);
+
+  /* ---- Movimento ---- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-drape: cubic-bezier(0.22, 1, 0.36, 1);
+  --d-fast: 160ms;
+  --d-base: 320ms;
+  --d-slow: 620ms;
+  --d-drape: 900ms;
+
+  --z-header: 80;
+  --z-drawer: 90;
+  --z-overlay: 85;
+
+  color-scheme: light;
+}
+
+/* Movimento reduzido é respeitado na origem: zerar os tokens desarma
+   toda animação do site de uma vez, sem precisar caçar regra por regra. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --d-fast: 1ms;
+    --d-base: 1ms;
+    --d-slow: 1ms;
+    --d-drape: 1ms;
+  }
+}

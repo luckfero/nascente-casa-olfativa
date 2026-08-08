@@ -1,0 +1,344 @@
+/* ============================================================================
+   Nascente — reset, primitivas tipográficas e utilitários
+   ========================================================================== */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+* { margin: 0; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--header-h) + var(--s-4));
+
+  /* Barra de rolagem oculta a pedido — decisão estética consciente. O custo é
+     perder o indicador de posição na página; a rolagem por roda, toque e
+     teclado continua intacta. */
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+body {
+  min-height: 100svh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--t-base);
+  font-weight: 400;
+  line-height: var(--lead-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img, svg, video { display: block; max-width: 100%; }
+
+/* `picture` sai do fluxo de layout para que o `img` vire filho direto do
+   contêiner. Sem isso o `height: 100%` do img resolve contra a altura
+   automática do picture e sobra fundo aparecendo embaixo da foto. */
+picture { display: contents; }
+
+button, input, select, textarea { font: inherit; color: inherit; }
+button { background: none; border: none; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; padding: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* ---- Títulos ----
+   A didone só aparece grande. Abaixo de --t-lg o alto contraste começa a
+   fechar os traços finos, então esses tamanhos voltam para a geométrica. */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: var(--lead-tight);
+  letter-spacing: var(--track-tight);
+  text-wrap: balance;
+}
+
+h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  line-height: var(--lead-snug);
+  letter-spacing: var(--track-normal);
+}
+
+p { text-wrap: pretty; }
+
+/* ---- Primitivas de texto ---- */
+/* O olho tem dois pesos de respiro.
+   Sobre título de seção ele quase encosta — são uma unidade só.
+   Sobre título de página ele funciona como etiqueta de capítulo e precisa
+   de ar suficiente para não competir com a serifada grande. */
+.eyebrow {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: var(--t-2xs);
+  font-weight: 500;
+  letter-spacing: var(--track-widest);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: var(--s-2);
+}
+
+.page-hero > .eyebrow,
+.eyebrow--page {
+  margin-bottom: var(--s-5);
+}
+
+.lede {
+  font-size: var(--t-md);
+  line-height: 1.5;
+  color: var(--ink-soft);
+  max-width: 46ch;
+}
+
+.prose { max-width: var(--measure); }
+.prose p + p { margin-top: var(--s-4); }
+
+/* Um filete curto em terracota marca o início de cada bloco — dá cor e
+   hierarquia ao texto corrido sem recorrer a caixa ou fundo. */
+.prose h2 {
+  font-size: var(--t-lg);
+  margin: var(--s-7) 0 var(--s-3);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
+  position: relative;
+}
+.prose h2::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 2.5rem;
+  height: 2px;
+  background: var(--accent-warm);
+}
+.prose > h2:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.prose > h2:first-child::before { display: none; }
+.prose h3 { font-size: var(--t-md); font-family: var(--font-sans); font-weight: 600; margin: var(--s-6) 0 var(--s-2); }
+.prose ul { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-3); }
+.prose li { padding-left: var(--s-4); position: relative; color: var(--ink-soft); }
+.prose li::before {
+  content: ""; position: absolute; left: 0; top: 0.7em;
+  width: 5px; height: 1px; background: var(--accent-warm);
+}
+.prose a { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- Foco ----
+   Anel duplo: contorno claro por dentro para sobreviver a fotos escuras,
+   contorno de marca por fora. Legível em qualquer fundo do site. */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 1px var(--bg-raised);
+  border-radius: var(--r-xs);
+}
+:focus:not(:focus-visible) { outline: none; }
+
+.skip-link {
+  position: fixed;
+  top: var(--s-3);
+  left: var(--s-3);
+  z-index: 200;
+  padding: var(--s-3) var(--s-5);
+  background: var(--ink);
+  color: var(--ink-inverse);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  transform: translateY(calc(-100% - var(--s-4)));
+  transition: transform var(--d-base) var(--ease-out);
+}
+.skip-link:focus { transform: translateY(0); }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+::selection { background: var(--accent-warm); color: var(--ink-inverse); }
+
+/* ---- Layout ---- */
+.shell {
+  width: 100%;
+  max-width: var(--content);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.shell--tight { max-width: var(--content-tight); }
+
+.section { padding-block: var(--s-8); }
+.section--lg { padding-block: var(--s-9); }
+
+.section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-5);
+  margin-bottom: var(--s-6);
+  padding-bottom: var(--s-4);
+  border-bottom: 1px solid var(--line);
+}
+.section-head h2 { font-size: var(--t-xl); }
+
+/* ---- Botões ---- */
+.btn {
+  --btn-bg: var(--ink);
+  --btn-ink: var(--ink-inverse);
+  --btn-border: transparent;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  min-height: 2.875rem;
+  padding: 0 var(--s-6);
+  background: var(--btn-bg);
+  color: var(--btn-ink);
+  border: 1px solid var(--btn-border);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  overflow: hidden;
+  transition: color var(--d-base) var(--ease-out), border-color var(--d-base) var(--ease-out);
+}
+
+/* Preenchimento que sobe a partir da base no hover — o gesto das maisons,
+   sem trocar a cor de golpe. */
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--interactive);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform var(--d-base) var(--ease-drape);
+  z-index: 0;
+}
+.btn > * { position: relative; z-index: 1; }
+.btn:hover::after { transform: scaleY(1); }
+.btn:active { transform: translateY(1px); }
+
+.btn--ghost { --btn-bg: transparent; --btn-ink: var(--ink); --btn-border: var(--line-strong); }
+.btn--ghost:hover { color: var(--ink-inverse); border-color: var(--interactive); }
+.btn--clay { --btn-bg: var(--accent-warm); --btn-ink: var(--ink-inverse); }
+.btn--paper { --btn-bg: var(--bg-raised); --btn-ink: var(--ink); }
+.btn--paper:hover { color: var(--ink-inverse); }
+.btn--on-dark { --btn-bg: var(--bg-raised); --btn-ink: var(--ink); }
+.btn--on-dark:hover { color: var(--ink-inverse); }
+
+/* Contorno claro para uso sobre fotografia escura. */
+.btn--on-media {
+  --btn-ink: var(--ink-inverse);
+  --btn-border: rgba(247, 242, 233, 0.5);
+}
+.btn--on-media:hover { --btn-border: var(--interactive); }
+.btn--block { width: 100%; }
+.btn--sm { min-height: 2.25rem; padding-inline: var(--s-4); }
+
+.btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+.btn:disabled::after { transform: scaleY(0); }
+
+/* Link com sublinhado que se desenha a partir da esquerda. */
+.link {
+  position: relative;
+  display: inline-block;
+  font-size: var(--t-xs);
+  font-weight: 500;
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  padding-bottom: 2px;
+}
+.link::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: 0;
+  width: 100%; height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform var(--d-base) var(--ease-drape);
+}
+.link:hover::after { transform: scaleX(1); transform-origin: left; }
+.link--static::after { transform: scaleX(1); }
+.link--static:hover::after { transform: scaleX(0); transform-origin: right; }
+
+/* ---- Campos ---- */
+.field { display: flex; flex-direction: column; gap: var(--s-2); }
+.field > label {
+  font-size: var(--t-2xs);
+  font-weight: 500;
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  min-height: 2.875rem;
+  padding: var(--s-3) var(--s-4);
+  background: var(--bg-raised);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-xs);
+  transition: border-color var(--d-fast) var(--ease-out);
+}
+.field input:hover,
+.field select:hover,
+.field textarea:hover { border-color: var(--ink-faint); }
+.field textarea { min-height: 8rem; resize: vertical; line-height: 1.5; }
+.field [aria-invalid="true"] { border-color: var(--state-error); }
+
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--t-xs);
+  color: var(--state-error);
+}
+.field-error::before { content: "—"; }
+
+.field-hint { font-size: var(--t-xs); color: var(--ink-faint); }
+
+/* ---- Divisor de seção ---- */
+.rule { height: 1px; background: var(--line); border: 0; }
+
+/* ---- Animação de entrada ----
+   O HTML nasce visível. Só quando o JS assume é que o elemento recebe
+   data-reveal="pending" e passa a animar — sem script, nada some da tela. */
+[data-reveal="pending"] {
+  opacity: 0;
+  transform: translateY(1.25rem);
+  transition:
+    opacity var(--d-slow) var(--ease-out),
+    transform var(--d-slow) var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+[data-reveal="pending"].is-revealed {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal="pending"] { opacity: 1; transform: none; }
+}

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import "@fontsource-variable/manrope";
-import "@fontsource-variable/newsreader";
-import "./globals.css";
-import "./centered.css";
-import "./luxury.css";
+import "@fontsource-variable/bodoni-moda";
+import "@fontsource-variable/jost";
+import "./tokens.css";
+import "./base.css";
+import "./shell.css";
+import "./editorial.css";
+import "./commerce.css";
 
 const publicSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
@@ -14,10 +16,10 @@ export const metadata: Metadata = {
     template: "%s | Nascente",
   },
   description:
-    "Perfumaria autoral para o corpo, a casa e os momentos entre os dois.",
+    "Perfumaria autoral para o corpo, a casa e os momentos entre os dois. Três coleções em colônias, cuidados e perfumação de ambiente.",
   robots: { index: true, follow: true },
   other: {
-    "theme-color": "#4A1423",
+    "theme-color": "#191210",
   },
   openGraph: {
     title: "Nascente — Casa Olfativa",
@@ -30,7 +32,7 @@ export const metadata: Metadata = {
         url: "/images/hq/hero-central-nascente.webp",
         width: 3344,
         height: 1882,
-        alt: "Perfume Nascente centralizado em composição botânica",
+        alt: "Frasco Nascente em vidro âmbar entre folhas e bergamota",
       },
     ],
   },

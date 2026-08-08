@@ -17,3 +17,7 @@
 # TypeScript
 next-env.d.ts
 *.tsbuildinfo
+.shots/
+
+# Notas internas de trabalho — não publicar
+CLAUDE.md
