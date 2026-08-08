@@ -4,6 +4,7 @@ import { type ReactNode } from "react";
 import { collectionBySlug, productBySlug } from "@/lib/catalog";
 import { CartProvider } from "./cart";
 import { CartDrawer, Footer, Header } from "./shell";
+import ViewTransitions from "./view-transitions";
 import { HomePage } from "./page-home";
 import { CatalogPage, CollectionPage, CollectionsPage } from "./page-catalog";
 import { ProductPage } from "./page-product";
@@ -57,6 +58,7 @@ export default function Storefront({ route }: { route: string[] }) {
 
   return (
     <CartProvider>
+      <ViewTransitions />
       <a href="#conteudo" className="skip-link">Pular para o conteúdo</a>
 
       {!bare && <Header overMedia={overMedia} path={path} />}

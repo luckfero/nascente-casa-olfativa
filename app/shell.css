@@ -382,6 +382,15 @@
     visibility: hidden;
   }
   .header__nav[data-open="true"] { transform: translateX(0); visibility: visible; }
+
+  /* Com o menu aberto o cabeçalho sobe acima do próprio scrim.
+     O `z-index: var(--z-drawer)` do nav não bastava: ele é resolvido dentro
+     do contexto de empilhamento do `.header`, que vive em `--z-header` (80),
+     abaixo do scrim (85). O resultado era o menu abrir com todos os links
+     cobertos e nenhum deles clicável no celular.
+     Só quando o menu está aberto — na gaveta da sacola o cabeçalho deve
+     mesmo ficar sob o scrim. */
+  .header:has(.header__nav[data-open="true"]) { z-index: var(--z-drawer); }
   .header__nav ul { flex-direction: column; align-items: flex-start; gap: var(--s-5); }
   .header__nav a { font-size: var(--t-sm); }
   .menu-toggle { display: inline-grid; grid-column: 1; justify-self: start; }

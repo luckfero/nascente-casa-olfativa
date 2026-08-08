@@ -342,3 +342,34 @@ p { text-wrap: pretty; }
 @media (prefers-reduced-motion: reduce) {
   [data-reveal="pending"] { opacity: 1; transform: none; }
 }
+
+/* ---- Transição entre páginas ----
+   Disparada por components/view-transitions.tsx, que abre a
+   `startViewTransition` no clique de um link interno. O CSS só descreve
+   como as duas fotos se substituem.
+
+   A saída é mais curta que a entrada de propósito: a tela antiga precisa
+   sair de cena antes de a nova terminar de assentar, senão as duas se
+   sobrepõem e o texto fica ilegível no meio do caminho. */
+::view-transition-old(root) {
+  animation: pagina-sai var(--d-base) var(--ease-inout) both;
+}
+
+::view-transition-new(root) {
+  animation: pagina-entra var(--d-slow) var(--ease-out) both;
+}
+
+@keyframes pagina-sai {
+  to { opacity: 0; transform: translateY(-0.5rem); }
+}
+
+@keyframes pagina-entra {
+  from { opacity: 0; transform: translateY(0.75rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* O componente já evita abrir a transição neste caso; isto cobre a
+     navegação que o navegador iniciar por conta própria. */
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
+}
