@@ -91,5 +91,26 @@ test("a página 404 mantém a casca do site e pede para não indexar", async () 
   assert.equal(response.status, 404);
   assert.match(html, /Esta página não existe/);
   assert.match(html, /Voltar ao início/);
-  assert.match(html, /noindex/i);
+
+  /* Só a head. O payload do RSC repete os metadados como dado serializado
+     mais abaixo, então procurar no documento inteiro passa mesmo quando a
+     tag não foi renderizada — foi exatamente o que mascarou este caso. */
+  const head = html.slice(0, html.indexOf("</head>"));
+
+  /* Uma tag de cada. Duas `<title>` fariam o navegador usar a primeira, que
+     é a do layout. */
+  const titles = [...head.matchAll(/<title>([^<]*)<\/title>/g)].map((m) => m[1]);
+  assert.deepEqual(titles, ["Página não encontrada | Nascente"]);
+
+  const robots = [...head.matchAll(/<meta name="robots" content="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(robots, ["noindex, follow"]);
+});
+
+test("página real não herda o noindex do 404", async () => {
+  const response = await fetchRoute("/produtos");
+  const head = (await response.text()).split("</head>")[0];
+
+  assert.equal(response.status, 200);
+  assert.match(head, /<meta name="robots" content="index, follow"/);
+  assert.doesNotMatch(head, /noindex/);
 });

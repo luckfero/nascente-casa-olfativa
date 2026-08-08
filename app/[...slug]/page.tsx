@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import Storefront from "@/components/storefront";
 import { collectionBySlug, productBySlug } from "@/lib/catalog";
-import { isKnownRoute } from "@/lib/routes";
 
 const routeTitles: Record<string, { title: string; description: string }> = {
   produtos: {
@@ -86,11 +84,16 @@ export async function generateMetadata({
       };
     }
   }
-  const meta = routeTitles[slug.join("/")] ?? {
+  const meta = routeTitles[slug.join("/")];
+  if (meta) return meta;
+
+  /* Caminho desconhecido: além do título, pedir para não indexar. O código
+     404 em si é definido em `worker/index.ts`. */
+  return {
     title: "Página não encontrada",
     description: "O caminho solicitado não foi encontrado.",
+    robots: { index: false, follow: true },
   };
-  return meta;
 }
 
 export default async function Page({
@@ -99,11 +102,5 @@ export default async function Page({
   params: Promise<{ slug: string[] }>;
 }) {
   const { slug } = await params;
-
-  /* Caminho inexistente sai daqui com 404 de verdade, renderizando
-     `app/not-found.tsx`. Antes o storefront devolvia a página de erro
-     dentro de uma resposta 200. */
-  if (!isKnownRoute(slug)) notFound();
-
   return <Storefront route={slug} />;
 }
