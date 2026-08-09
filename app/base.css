@@ -271,7 +271,11 @@ p { text-wrap: pretty; }
 /* Link com sublinhado que se desenha a partir da esquerda. */
 .link {
   position: relative;
+  /* `padding-block` leva o alvo aos 24px mínimos de toque: o texto sozinho
+     rendia 21px de altura. O sublinhado animado é desenhado a partir da
+     base do texto, então o espaçamento não o desloca. */
   display: inline-block;
+  padding-block: 3px;
   font-size: var(--t-xs);
   font-weight: 500;
   letter-spacing: var(--track-wide);
