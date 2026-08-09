@@ -17,6 +17,16 @@ html {
      perder o indicador de posição na página; a rolagem por roda, toque e
      teclado continua intacta. */
   scrollbar-width: none;
+
+  /* A gaveta do menu é `position: fixed` empurrada para fora da tela com
+     `translateX(100%)`. Fora da tela ela ainda conta para a área rolável:
+     no celular isso esticava o documento de 393px para 731px, e o
+     navegador encolhia a página inteira para caber. Era a causa de o
+     cabeçalho não caber e de tudo ficar minúsculo no aparelho.
+
+     `clip` e não `hidden`: `hidden` transformaria a raiz num contêiner de
+     rolagem e mataria o `position: sticky` do cabeçalho. */
+  overflow-x: clip;
 }
 html::-webkit-scrollbar,
 body::-webkit-scrollbar { width: 0; height: 0; display: none; }
