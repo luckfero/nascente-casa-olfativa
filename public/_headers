@@ -1,0 +1,25 @@
+# Cabeçalhos para os arquivos estáticos.
+#
+# O worker aplica os cabeçalhos de segurança nas respostas que ele monta,
+# mas imagem, fonte e JS empacotado são servidos direto pela Cloudflare,
+# sem passar por ele. Este arquivo cobre esse caminho.
+#
+# `nosniff` é o que importa aqui: impede o navegador de ignorar o
+# Content-Type declarado e adivinhar o tipo do arquivo — que é como um
+# arquivo servido como imagem acaba executado como script.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Conteúdo com hash no nome nunca muda: pode ficar em cache para sempre.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# As variantes responsivas são regeradas junto com a foto de origem, então
+# um mês é seguro e ainda evita rebaixar quando a imagem trocar.
+/images/r/*
+  Cache-Control: public, max-age=2592000
