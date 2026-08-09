@@ -26,7 +26,10 @@
 
   --ink: var(--pig-ink);
   --ink-soft: #57453d;
-  --ink-faint: #8a7566;
+  /* Escurecido de #8a7566, que rendia 3,97:1 sobre o papel — abaixo dos
+     4,5:1 exigidos para texto pequeno, e este token veste 21 pontos do
+     site. Continua sendo o cinza mais claro da escala. */
+  --ink-faint: #7b6759;
   --ink-inverse: #f7f2e9;
   --ink-inverse-soft: rgba(247, 242, 233, 0.72);
 
@@ -37,6 +40,12 @@
   /* Cor de interação dos botões: âmbar queimado, separada de --accent para
      que o vinho continue disponível como cor de marca sem virar hover. */
   --interactive: #a15f03;
+
+  /* Argila escurecida, só para texto pequeno. O `--accent-warm` também
+     é fundo de botão e cor de seleção: mexer nele mudaria a marca, mas
+     como cor de texto ele fica em 4,48:1 — um centésimo abaixo do
+     mínimo. Esta variante existe para esses casos. */
+  --accent-warm-text: #8f4a30;
 
   --line: rgba(25, 18, 16, 0.14);
   --line-strong: rgba(25, 18, 16, 0.28);

@@ -264,7 +264,7 @@
 .value-list__index {
   font-family: var(--font-display);
   font-size: var(--t-sm);
-  color: var(--accent-warm);
+  color: var(--accent-warm-text);
   font-variant-numeric: tabular-nums;
 }
 .value-list strong { display: block; font-weight: 500; font-size: var(--t-sm); }
@@ -328,7 +328,7 @@
 }
 .quiz-intro__steps span {
   font-family: var(--font-display);
-  color: var(--accent-warm);
+  color: var(--accent-warm-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -639,7 +639,7 @@
 }
 .timeline__node:hover .timeline__marker {
   border-color: var(--accent-warm);
-  color: var(--accent-warm);
+  color: var(--accent-warm-text);
 }
 .timeline__marker svg {
   width: 1.4rem;
@@ -656,7 +656,7 @@
   font-weight: 500;
   letter-spacing: var(--track-widest);
   text-transform: uppercase;
-  color: var(--accent-warm);
+  color: var(--accent-warm-text);
 }
 
 .timeline__title {
