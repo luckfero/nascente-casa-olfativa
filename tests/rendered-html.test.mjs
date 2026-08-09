@@ -19,6 +19,31 @@ async function fetchRoute(path) {
   );
 }
 
+const CABECALHOS_ESPERADOS = {
+  "cross-origin-opener-policy": "same-origin",
+  "permissions-policy": "camera=(), geolocation=(), microphone=()",
+  "referrer-policy": "strict-origin-when-cross-origin",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY",
+};
+
+/* Cobre os três tipos de resposta: página normal, 404 e recurso que não é
+   HTML. O 404 é o caso fácil de esquecer — ele é remontado no worker, e uma
+   `new Response` nasce sem os cabeçalhos do original. */
+for (const [rotulo, rota] of [
+  ["a home", "/"],
+  ["uma rota interna", "/produtos"],
+  ["a página 404", "/pagina-que-nao-existe"],
+  ["o robots.txt", "/robots.txt"],
+]) {
+  test(`${rotulo} responde com os cabeçalhos de segurança`, async () => {
+    const response = await fetchRoute(rota);
+    for (const [nome, valor] of Object.entries(CABECALHOS_ESPERADOS)) {
+      assert.equal(response.headers.get(nome), valor, `${nome} em ${rota}`);
+    }
+  });
+}
+
 test("renderiza a página inicial da Nascente", async () => {
   const response = await fetchRoute("/");
   const html = await response.text();
