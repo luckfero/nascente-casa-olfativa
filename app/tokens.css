@@ -29,7 +29,10 @@
   /* Escurecido de #8a7566, que rendia 3,97:1 sobre o papel — abaixo dos
      4,5:1 exigidos para texto pequeno, e este token veste 21 pontos do
      site. Continua sendo o cinza mais claro da escala. */
-  --ink-faint: #7b6759;
+  /* Era #7b6759, que media 4,32:1 sobre o bege mais fechado das seções —
+     perto, mas abaixo do mínimo de 4,5. Este chega a 5,27:1 e a diferença a
+     olho nu é mínima. */
+  --ink-faint: #6d5a4d;
   --ink-inverse: #f7f2e9;
   --ink-inverse-soft: rgba(247, 242, 233, 0.72);
 
