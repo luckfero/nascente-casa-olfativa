@@ -260,7 +260,16 @@ export function useFocusTrap(active: boolean, onClose: () => void) {
  * estado num limiar. Em páginas sem hero o valor vira 1 de imediato, e o
  * cabeçalho já nasce opaco.
  */
-export function useHeroProgress() {
+/**
+ * Progresso da rolagem sobre o hero, de 0 a 1.
+ *
+ * Recebe a rota porque o cabeçalho é montado uma vez e sobrevive às
+ * navegações do lado do cliente. Sem essa dependência o efeito rodava só
+ * na primeira página: ao voltar para a home, a referência do hero era a
+ * da página anterior — ou nenhuma —, e a barra saltava de transparente
+ * para branca no primeiro toque de rolagem.
+ */
+export function useHeroProgress(rota: string) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -294,7 +303,7 @@ export function useHeroProgress() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, []);
+  }, [rota]);
 
   return progress;
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { money } from "@/lib/catalog";
 import { SIZES } from "@/lib/images";
 import { FREE_SHIPPING_FROM } from "@/lib/shipping";
@@ -21,13 +21,35 @@ const NAV = [
 export function Header({ overMedia, path }: { overMedia: boolean; path: string }) {
   const { count, setOpen } = useCart();
   const router = useRouter();
-  const progress = useHeroProgress();
+  const progress = useHeroProgress(path);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [term, setTerm] = useState("");
   const searchRef = useRef<HTMLInputElement>(null);
 
   useScrollLock(menuOpen);
+
+  /* A busca fechava só pelo Escape ou por uma pesquisa concluída. Trocar de
+     página ou tocar em qualquer outro ponto a deixava aberta — no celular
+     ela ocupa uma faixa inteira abaixo da barra e ficava no caminho. */
+  useEffect(() => {
+    /* Fora do corpo síncrono do efeito para não encadear um segundo render
+       dentro do mesmo commit — mesma razão do `useHeroProgress`. */
+    queueMicrotask(() => setSearchOpen(false));
+  }, [path]);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    function aoTocarFora(event: PointerEvent) {
+      const alvo = event.target as Element | null;
+      if (alvo?.closest(".header__search")) return;
+      setSearchOpen(false);
+    }
+    /* `pointerdown` e não `click`: fecha assim que o dedo encosta, antes de
+       o toque virar clique em algo atrás do campo. */
+    document.addEventListener("pointerdown", aoTocarFora);
+    return () => document.removeEventListener("pointerdown", aoTocarFora);
+  }, [searchOpen]);
 
   /* Fora de páginas com hero o cabeçalho já nasce opaco. */
   const p = overMedia ? progress : 1;

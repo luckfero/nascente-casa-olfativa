@@ -339,18 +339,26 @@ p { text-wrap: pretty; }
 /* ---- Animação de entrada ----
    O HTML nasce visível. Só quando o JS assume é que o elemento recebe
    data-reveal="pending" e passa a animar — sem script, nada some da tela. */
+/* A transição vive no estado revelado, não no escondido — e a diferença
+   é visível.
+
+   Com ela na regra de baixo, o instante em que o JavaScript marca
+   `pending` animava o elemento de opacidade 1 para 0: o visitante via o
+   conteúdo aparecer, desaparecer devagar e voltar de estalo. Aqui o
+   estado escondido é assumido de imediato, sem animação, e só a entrada
+   é animada — que é o efeito pretendido. */
 [data-reveal="pending"] {
   opacity: 0;
   transform: translateY(1.25rem);
-  transition:
-    opacity var(--d-slow) var(--ease-out),
-    transform var(--d-slow) var(--ease-out);
-  transition-delay: var(--reveal-delay, 0ms);
 }
 
 [data-reveal="pending"].is-revealed {
   opacity: 1;
   transform: none;
+  transition:
+    opacity var(--d-slow) var(--ease-out),
+    transform var(--d-slow) var(--ease-out);
+  transition-delay: var(--reveal-delay, 0ms);
 }
 
 @media (prefers-reduced-motion: reduce) {
