@@ -1,25 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Nascente">
-  <rect width="64" height="64" fill="#2B1710"/>
-  <!-- Meia rodela de cítrico, levemente inclinada, como na referência. -->
-  <g transform="rotate(-8 32 34)">
-    <!-- Casca -->
-    <path d="M8 34a24 24 0 0 1 48 0Z" fill="#D89434"/>
-    <!-- Albedo (parte branca) -->
-    <path d="M12 34a20 20 0 0 1 40 0Z" fill="#F5EFE0"/>
-    <!-- Gomos -->
-    <g fill="#D89434">
-      <path d="M15 33.2a17 17 0 0 1 4.7-10.6l11.6 10.6Z"/>
-      <path d="M21.2 21.2A17 17 0 0 1 31 16.4v16.8Z"/>
-      <path d="M33 16.4a17 17 0 0 1 9.8 4.8L33 33.2Z"/>
-      <path d="M44.3 22.6A17 17 0 0 1 49 33.2H32.7Z"/>
-    </g>
-    <!-- Veios -->
-    <g stroke="#F5EFE0" stroke-width="0.9" stroke-linecap="round" opacity="0.85">
-      <path d="M32 31 24.5 25"/>
-      <path d="M32 31v-8"/>
-      <path d="M32 31 39.5 25"/>
-      <path d="M32 31.5 21 28.5"/>
-      <path d="M32 31.5 43 28.5"/>
-    </g>
+  <title>Nascente</title>
+  <!-- Meia rodela de cítrico, com a casca separada da polpa por um vão.
+       Substituiu, em 2026-08-11, uma rodela com casca, albedo, quatro gomos
+       irregulares e veios de 0,9px. Em 16px, o tamanho real de uma aba,
+       aquilo virava uma mancha laranja.
+
+       O vão escuro entre casca e polpa é o detalhe que faz a leitura
+       acontecer: sem ele, sobra meio círculo laranja. Com ele, lê como
+       cítrico sem precisar de veio nenhum.
+
+       O fundo precisa ser exatamente `--pig-ink`, porque o vão e os cortes
+       são recortes que mostram o fundo. Trocar a cor do `rect` sem trocar a
+       dos recortes quebra o desenho. -->
+  <rect width="64" height="64" fill="#191210"/>
+  <path d="M5 45A27 27 0 0 1 59 45Z" fill="#c99a58"/>
+  <path d="M12 45A20 20 0 0 1 52 45Z" fill="#191210"/>
+  <path d="M17 45A15 15 0 0 1 47 45Z" fill="#c99a58"/>
+  <g stroke="#191210" stroke-width="4.2" stroke-linecap="round">
+    <path d="M32 45V31"/>
+    <path d="M32 45 21.5 34.5"/>
+    <path d="M32 45 42.5 34.5"/>
   </g>
 </svg>
