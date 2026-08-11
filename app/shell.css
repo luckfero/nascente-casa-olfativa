@@ -34,6 +34,36 @@
     rgba(247, 242, 233, 0.14)
   );
   color: color-mix(in srgb, var(--ink) calc(var(--p) * 100%), var(--ink-inverse));
+}
+
+/* ---- Por que o desfoque mora num pseudo-elemento ----
+   `backdrop-filter` transforma o elemento em **bloco de contenção para
+   descendentes `position: fixed`**. A gaveta do menu (`.header__nav`) é
+   fixed no celular e mora dentro do cabeçalho: com o desfoque aplicado ao
+   cabeçalho, o `inset: 0 0 0 auto` dela passava a resolver contra o
+   cabeçalho em vez da janela, e o `translateX(100%)` a jogava para fora,
+   esticando o documento de 393px para 731px. O navegador então encolhia a
+   página inteira para caber.
+
+   A correção anterior tinha sido desligar o desfoque no celular, o que
+   resolvia o layout e custava o efeito. Aqui ele volta: no pseudo-elemento
+   o resultado visual é idêntico e a armadilha desaparece, porque um
+   `::before` não tem descendente algum para conter.
+
+   O `z-index: -1` o coloca atrás do conteúdo do cabeçalho e à frente da
+   página que rola por baixo, que é exatamente o que o `backdrop-filter`
+   precisa amostrar. O fundo semitransparente do cabeçalho continua por cima,
+   dando a tinta do vidro.
+
+   O prefixo `-webkit-` não é legado: todo navegador de iPhone usa WebKit, e
+   sem ele o efeito simplesmente não existe no aparelho. */
+.header--over-media::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  -webkit-backdrop-filter: saturate(1.2) blur(16px);
   backdrop-filter: saturate(1.2) blur(16px);
 }
 
@@ -401,20 +431,12 @@
   .header__nav a { font-size: var(--t-sm); }
   .menu-toggle { display: inline-grid; grid-column: 1; justify-self: start; }
 
-  /* ---- Por que o desfoque sai no celular ----
-     `backdrop-filter` faz o elemento virar bloco de contenção para
-     descendentes `position: fixed`. A gaveta do menu é fixed e fica
-     escondida com `translateX(100%)`: contida pelo cabeçalho em vez da
-     janela, ela passou a esticar o documento de 393px para 731px. O
-     navegador então encolhia a página inteira para caber — a origem de o
-     cabeçalho não caber e de tudo ficar pequeno demais no aparelho.
-     Medido: com o desfoque, documento de 731px; sem ele, 393px.
-
-     O desfoque é refinamento de desktop, sobre o hero. No celular ele
-     custava a página inteira, e ainda é dos efeitos mais caros de compor
-     num aparelho modesto. */
-  .header,
-  .header--over-media { backdrop-filter: none; }
+  /* O desfoque **volta** no celular desde 2026-08-11. Ele estava desligado
+     aqui porque, aplicado ao cabeçalho, esticava o documento de 393px para
+     731px pela regra do bloco de contenção. Agora ele mora em
+     `.header--over-media::before`, onde não contém a gaveta, e a regra que
+     o desligava deixou de fazer sentido. A explicação completa está junto
+     do pseudo-elemento, no topo deste arquivo. */
   .footer__grid { grid-template-columns: repeat(2, 1fr); }
 
   /* ---- Busca no celular ----
