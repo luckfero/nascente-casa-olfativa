@@ -48,8 +48,15 @@ export const metadata: Metadata = {
     ],
   },
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    /* O `?v=` não é enfeite. O navegador guarda favicon num índice próprio,
+       fora do cache HTTP normal, e ignora `must-revalidate`: quem já visitou
+       continua vendo o ícone antigo mesmo com Ctrl+F5. Mudar o endereço é o
+       que força a busca.
+
+       **Trocar o desenho sem subir este número não chega em ninguém que já
+       esteve aqui.** v2 = meia rodela de cítrico, 2026-08-11. */
+    icon: "/favicon.svg?v=2",
+    shortcut: "/favicon.svg?v=2",
   },
 };
 
