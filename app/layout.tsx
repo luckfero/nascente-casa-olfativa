@@ -15,7 +15,7 @@ const publicSiteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://nascente.vara
 export const metadata: Metadata = {
   metadataBase: new URL(publicSiteUrl),
   title: {
-    default: "Nascente — Casa Olfativa",
+    default: "Nascente | Casa Olfativa",
     template: "%s | Nascente",
   },
   description:
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     "theme-color": "#191210",
   },
   openGraph: {
-    title: "Nascente — Casa Olfativa",
+    title: "Nascente | Casa Olfativa",
     description:
       "Três coleções autorais para perfumar a pele, a casa e os momentos entre os dois.",
     type: "website",
