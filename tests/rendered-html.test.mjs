@@ -132,13 +132,27 @@ test("a página 404 mantém a casca do site e pede para não indexar", async () 
   assert.deepEqual(robots, ["noindex, follow"]);
 });
 
-test("página real não herda o noindex do 404", async () => {
+test("página real não é servida como a de erro", async () => {
   const response = await fetchRoute("/produtos");
   const head = (await response.text()).split("</head>")[0];
 
   assert.equal(response.status, 200);
-  assert.match(head, /<meta name="robots" content="index, follow"/);
-  assert.doesNotMatch(head, /noindex/);
+
+  /* O site inteiro é `noindex, nofollow` desde 2026-08-10: a Nascente é um
+     projeto conceitual, e o catálogo com fluxo de compra completo apareceria
+     na busca como loja real de uma empresa que não existe. Antes deste teste
+     ser reescrito, ele cobrava `index, follow` aqui.
+
+     O que ele guardava continua valendo, e é o motivo de não ter sido
+     apagado: a página de erro usa `noindex, follow`, com título próprio, e
+     nenhuma página real pode ser servida no lugar dela. A diferença entre
+     `nofollow` e `follow` é o que separa as duas. */
+  const robots = [...head.matchAll(/<meta name="robots" content="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(robots, ["noindex, nofollow"]);
+
+  const titles = [...head.matchAll(/<title[^>]*>([\s\S]*?)<\/title>/gi)].map((m) => m[1]);
+  assert.equal(titles.length, 1);
+  assert.doesNotMatch(titles[0], /não encontrada/i, "página real recebeu o título do 404");
 });
 
 test("HTTP puro não entrega página: redireciona para HTTPS", async () => {
