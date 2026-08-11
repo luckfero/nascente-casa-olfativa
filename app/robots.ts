@@ -1,20 +1,26 @@
 import type { MetadataRoute } from "next";
 
 /**
- * Projeto conceitual: nada aqui deve ser rastreado.
+ * Projeto conceitual: não deve ser indexado. Quem faz isso é o `noindex` do
+ * layout, e **não** um `Disallow` aqui.
  *
- * A meta tag `robots` do layout já diz `noindex`, mas ela só age depois que
- * o rastreador busca a página. O `Disallow` evita a visita, e os dois juntos
- * são o que fecha de verdade.
+ * A distinção é contraintuitiva e custou uma correção. `Disallow` impede o
+ * rastreador de buscar a página; sem buscar, ele nunca lê a meta tag
+ * `noindex`. O endereço então continua elegível para aparecer na busca, só
+ * que sem conteúdo, a partir de qualquer link externo. As duas instruções
+ * juntas se anulam.
  *
- * Sem `sitemap`: apontar um mapa de páginas que o robô não deve visitar é
- * contraditório, e alguns rastreadores seguem o sitemap mesmo assim.
+ * Para tirar da busca de verdade: liberar o acesso aqui e negar a indexação
+ * na página. É o que a Nívora e o Brasa do Vale já faziam.
+ *
+ * Sem `sitemap`: um mapa de páginas que não devem ser indexadas não tem
+ * função, e ainda convida o rastreador a percorrer o catálogo inteiro.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: "*",
-      disallow: "/",
+      allow: "/",
     },
   };
 }
