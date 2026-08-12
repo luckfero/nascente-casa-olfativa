@@ -2,6 +2,13 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "nascente-casa-olfativa",
   "main": "./worker/index.ts",
+  // O endereço `workers.dev` está desligado de propósito. Descobriu-se na
+  // varredura de 2026-08-11 que declarar `custom_domain` sem `workers_dev`
+  // explícito faz o deploy desativá-lo sozinho; aqui isso vira decisão
+  // documentada, porque o endereço antigo carregava o nome da conta pessoal
+  // na URL e nenhum link publicado aponta mais para ele. Quem precisar
+  // reativar: trocar para `true` e publicar.
+  "workers_dev": false,
   // Domínio próprio declarado aqui, e não no painel: no deploy o wrangler
   // cria o registro DNS e pede o certificado sozinho. Ver a nota igual no
   // wrangler da Nívora.
