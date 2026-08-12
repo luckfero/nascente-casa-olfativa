@@ -187,3 +187,56 @@ test("HTTP puro não entrega página: redireciona para HTTPS", async () => {
   const local = await pedir("http://localhost/sobre");
   assert.notEqual(local.status, 301, "localhost não pode redirecionar");
 });
+
+test("todo SVG do projeto é XML válido", async () => {
+  /* Um favicon com XML inválido não avisa: o navegador não faz o parse, não
+     renderiza nada, e mantém o ícone anterior. Parece cache e não é.
+
+     Aconteceu aqui: um comentário trazia o nome de uma variável CSS, e
+     comentário XML **não pode conter dois hifens seguidos**. O arquivo foi
+     publicado, o md5 do que o servidor entregava batia com o do repositório,
+     e mesmo assim o ícone não aparecia. Comparar bytes prova que o arquivo
+     chegou, não que ele é válido.
+
+     `DOMParser` não existe no Node, então a validação é por regex sobre as
+     armadilhas conhecidas de XML, mais uma checagem de tags balanceadas. */
+  const { readdir, readFile } = await import("node:fs/promises");
+  const dir = new URL("../public/", import.meta.url);
+
+  async function svgsDe(caminho, prefixo = "") {
+    const saida = [];
+    for (const item of await readdir(caminho, { withFileTypes: true })) {
+      const nome = prefixo + item.name;
+      if (item.isDirectory()) saida.push(...await svgsDe(new URL(item.name + "/", caminho), nome + "/"));
+      else if (item.name.endsWith(".svg")) saida.push([nome, new URL(item.name, caminho)]);
+    }
+    return saida;
+  }
+
+  const arquivos = await svgsDe(dir);
+  assert.ok(arquivos.length > 0, "nenhum SVG encontrado em public/");
+
+  for (const [nome, url] of arquivos) {
+    const texto = await readFile(url, "utf8");
+
+    for (const comentario of texto.matchAll(/<!--([\s\S]*?)-->/g)) {
+      assert.doesNotMatch(
+        comentario[1],
+        /--/,
+        `${nome}: comentário XML com dois hifens seguidos, o que invalida o arquivo inteiro`,
+      );
+    }
+
+    /* Contar tags exige tirar os comentários antes: o `assinatura.svg` cita
+       literalmente uma tag dentro de um aviso, e contá-la dava desequilíbrio
+       onde o arquivo estava correto. Foi este teste que errou primeiro. */
+    const semComentario = texto.replace(/<!--[\s\S]*?-->/g, "");
+
+    const abre = (semComentario.match(/<(?!\/|!|\?)[a-zA-Z]/g) || []).length;
+    const fecha = (semComentario.match(/<\//g) || []).length + (semComentario.match(/\/>/g) || []).length;
+    assert.equal(abre, fecha, `${nome}: ${abre} tags abertas contra ${fecha} fechadas`);
+
+    assert.match(semComentario, /<svg[\s>]/, `${nome}: não começa com <svg>`);
+    assert.doesNotMatch(semComentario, /&(?!amp;|lt;|gt;|quot;|apos;|#)/, `${nome}: & sem escapar`);
+  }
+});

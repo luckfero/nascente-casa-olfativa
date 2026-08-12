@@ -9,9 +9,14 @@
        acontecer: sem ele, sobra meio círculo laranja. Com ele, lê como
        cítrico sem precisar de veio nenhum.
 
-       O fundo precisa ser exatamente `--pig-ink`, porque o vão e os cortes
-       são recortes que mostram o fundo. Trocar a cor do `rect` sem trocar a
-       dos recortes quebra o desenho. -->
+       O fundo precisa ser exatamente a cor de tinta da paleta (#191210),
+       porque o vão e os cortes são recortes que mostram o fundo. Trocar a
+       cor do `rect` sem trocar a dos recortes quebra o desenho.
+
+       ATENÇÃO ao editar este comentário: comentário XML não pode conter dois
+       hifens seguidos. Escrever o nome de uma variável CSS aqui invalida o
+       arquivo inteiro, o navegador não faz o parse, e o ícone simplesmente
+       não aparece. Foi o que aconteceu na primeira versão deste arquivo. -->
   <rect width="64" height="64" fill="#191210"/>
   <path d="M5 45A27 27 0 0 1 59 45Z" fill="#c99a58"/>
   <path d="M12 45A20 20 0 0 1 52 45Z" fill="#191210"/>
