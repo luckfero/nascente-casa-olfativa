@@ -27,7 +27,10 @@
   object-fit: cover;
   transition: transform var(--d-drape) var(--ease-drape);
 }
-.pcard:hover .pcard__media img { transform: scale(1.05); }
+/* Toque dispara :hover e o deixa preso: movimento de mouse só aqui. */
+@media (hover: hover) and (pointer: fine) {
+  .pcard:hover .pcard__media img { transform: scale(1.05); }
+}
 
 /* A ação rápida desliza por cima da imagem no hover; no toque ela já
    nasce visível, porque não existe hover em tela sensível. */

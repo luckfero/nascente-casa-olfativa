@@ -103,8 +103,12 @@
   transform-origin: right;
   transition: transform var(--d-base) var(--ease-drape);
 }
-.header__nav a:hover::after,
 .header__nav a[aria-current="page"]::after { transform: scaleX(1); transform-origin: left; }
+/* Toque dispara :hover e o deixa preso: movimento de mouse só aqui. A página
+   atual fica de fora, porque ela vale em qualquer aparelho. */
+@media (hover: hover) and (pointer: fine) {
+  .header__nav a:hover::after { transform: scaleX(1); transform-origin: left; }
+}
 
 .header__actions {
   grid-column: 3;

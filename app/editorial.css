@@ -195,7 +195,10 @@
   object-fit: cover;
   transition: transform var(--d-drape) var(--ease-drape);
 }
-.collection-card:hover .collection-card__media img { transform: scale(1.045); }
+/* Toque dispara :hover e o deixa preso: movimento de mouse só aqui. */
+@media (hover: hover) and (pointer: fine) {
+  .collection-card:hover .collection-card__media img { transform: scale(1.045); }
+}
 
 .collection-card h3 { font-size: var(--t-lg); margin-top: var(--s-1); }
 .collection-card p { font-size: var(--t-sm); color: var(--ink-soft); max-width: 34ch; }
@@ -407,7 +410,12 @@
     color var(--d-base) var(--ease-out),
     transform var(--d-fast) var(--ease-out);
 }
-.quiz-option:hover { border-color: var(--ink-faint); transform: translateY(-2px); }
+/* A borda continua respondendo em qualquer aparelho; só o deslocamento
+   depende de mouse, senão o toque o deixa preso. */
+.quiz-option:hover { border-color: var(--ink-faint); }
+@media (hover: hover) and (pointer: fine) {
+  .quiz-option:hover { transform: translateY(-2px); }
+}
 .quiz-option[aria-checked="true"] {
   background: var(--ink);
   border-color: var(--ink);

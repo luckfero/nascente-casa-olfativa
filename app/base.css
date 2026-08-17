@@ -57,11 +57,27 @@ ul, ol { list-style: none; padding: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+
+  /* Animação de keyframe aqui é sempre decorativa: sai inteira. */
   *, *::before, *::after {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 1ms !important;
   }
+
+  /* Menos movimento não é menos resposta. Cor e opacidade continuam
+     transicionando, que é o que confirma ao visitante que a interface ouviu
+     ele; o que sai da lista é o deslocamento. Antes daqui havia um
+     `transition-duration: 1ms !important` que zerava tudo, inclusive o
+     retorno do clique. */
+  *, *::before, *::after {
+    transition-property: opacity, color, background-color, border-color, fill, stroke !important;
+  }
+
+  /* Sem transição, um transform de hover viraria pulo instantâneo, que é
+     pior que o movimento suave. */
+  .pcard:hover .pcard__media img,
+  .collection-card:hover .collection-card__media img,
+  .quiz-option:hover { transform: none; }
 }
 
 /* ---- Títulos ----
@@ -242,7 +258,10 @@ p { text-wrap: pretty; }
   z-index: 0;
 }
 .btn > * { position: relative; z-index: 1; }
-.btn:hover::after { transform: scaleY(1); }
+/* Toque dispara :hover e o deixa preso: movimento de mouse só aqui. */
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover::after { transform: scaleY(1); }
+}
 .btn:active { transform: translateY(1px); }
 
 .btn--ghost { --btn-bg: transparent; --btn-ink: var(--ink); --btn-border: var(--line-strong); }
@@ -292,9 +311,12 @@ p { text-wrap: pretty; }
   transform-origin: right;
   transition: transform var(--d-base) var(--ease-drape);
 }
-.link:hover::after { transform: scaleX(1); transform-origin: left; }
 .link--static::after { transform: scaleX(1); }
-.link--static:hover::after { transform: scaleX(0); transform-origin: right; }
+/* Toque dispara :hover e o deixa preso: movimento de mouse só aqui. */
+@media (hover: hover) and (pointer: fine) {
+  .link:hover::after { transform: scaleX(1); transform-origin: left; }
+  .link--static:hover::after { transform: scaleX(0); transform-origin: right; }
+}
 
 /* ---- Campos ---- */
 .field { display: flex; flex-direction: column; gap: var(--s-2); }
