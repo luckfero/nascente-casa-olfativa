@@ -133,13 +133,19 @@
   color-scheme: light;
 }
 
-/* Movimento reduzido é respeitado na origem: zerar os tokens desarma
-   toda animação do site de uma vez, sem precisar caçar regra por regra. */
+/* Movimento reduzido é respeitado em duas camadas, e elas fazem coisas
+   diferentes. Quem tira o **deslocamento** é o `transition-property` restrito
+   no base.css; estes tokens continuam curtos para que o que sobra — cor,
+   opacidade, borda — troque rápido em vez de nunca.
+
+   Zerá-los em 1ms, como era antes, desarmava a animação inteira de uma vez,
+   o que parecia elegante e apagava junto o retorno visual do clique e da
+   mudança de estado. Menos movimento não é menos resposta. */
 @media (prefers-reduced-motion: reduce) {
   :root {
-    --d-fast: 1ms;
-    --d-base: 1ms;
-    --d-slow: 1ms;
-    --d-drape: 1ms;
+    --d-fast: 120ms;
+    --d-base: 160ms;
+    --d-slow: 160ms;
+    --d-drape: 160ms;
   }
 }
