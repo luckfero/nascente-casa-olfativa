@@ -36,13 +36,20 @@ const cabecalhosDeSeguranca: Record<string, string> = {
   "Cross-Origin-Opener-Policy": "same-origin",
   "Permissions-Policy": "camera=(), geolocation=(), microphone=()",
   "Referrer-Policy": "strict-origin-when-cross-origin",
-  /* Um dia, de propósito, e não um ano.
-     Quem memoriza esta ordem é o navegador do visitante, não o servidor:
-     parar de enviar o cabeçalho **não** apaga a memória de quem já recebeu.
-     Com um dia, um erro se resolve sozinho em 24h; com um ano, o visitante
-     fica preso à regra por um ano. Subir o prazo é decisão consciente,
-     depois de o redirecionamento estar comprovado em produção. */
-  "Strict-Transport-Security": "max-age=86400",
+  /* Um ano. Começou em um dia, em 2026-08-10, de propósito: quem memoriza
+     esta ordem é o navegador do visitante, não o servidor, e parar de enviar
+     o cabeçalho **não** apaga a memória de quem já recebeu. O prazo curto era
+     rede de segurança enquanto o redirecionamento não estava comprovado.
+
+     Subiu para um ano em 2026-08-17, depois de uma semana no ar e de 20 em 20
+     amostras dos quatro sites respondendo 301 em HTTP puro e 200 em HTTPS.
+
+     Sem `includeSubDomains` e sem `preload`, e as duas ausências são decisão.
+     O primeiro estenderia a regra a todo subdomínio abaixo deste host,
+     inclusive os que ainda não existem. O segundo é irreversível na prática:
+     sai de uma lista embutida no navegador, não de um cabeçalho que a gente
+     controla, e voltar atrás leva meses. */
+  "Strict-Transport-Security": "max-age=31536000",
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
 };
@@ -103,7 +110,7 @@ const worker: WorkerHandler = {
       url.protocol = "https:";
       return new Response(null, {
         status: 301,
-        headers: { Location: url.toString(), "Strict-Transport-Security": "max-age=86400" },
+        headers: { Location: url.toString(), "Strict-Transport-Security": "max-age=31536000" },
       });
     }
 

@@ -23,7 +23,7 @@ const CABECALHOS_ESPERADOS = {
   "cross-origin-opener-policy": "same-origin",
   "permissions-policy": "camera=(), geolocation=(), microphone=()",
   "referrer-policy": "strict-origin-when-cross-origin",
-  "strict-transport-security": "max-age=86400",
+  "strict-transport-security": "max-age=31536000",
   "x-content-type-options": "nosniff",
   "x-frame-options": "DENY",
 };
