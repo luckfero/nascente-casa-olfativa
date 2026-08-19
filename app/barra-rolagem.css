@@ -1,0 +1,215 @@
+/* ==========================================================================
+   Varanda Estúdio Web — barra de rolagem própria
+   Modelo do estúdio. Copie este arquivo sem alterar e defina só as três
+   variáveis de cor no `:root` do projeto. Nasceu na Casa Conexão em 18/08/2026.
+
+   O QUE ELA FAZ, E POR QUE NÃO É A NATIVA
+   Aparece ao rolar, some depois de 900ms parada, reaparece quando o ponteiro
+   chega perto da borda direita, arrasta com o mouse e salta uma tela ao
+   clicar no trilho. A nativa não faz nada disso: não some sozinha no desktop,
+   não aceita transição de opacidade, e as setinhas das pontas não podem ser
+   removidas — assim que `scrollbar-width` recebe valor diferente de `auto`,
+   o Chrome passa a ignorar `::-webkit-scrollbar-button`. Medido no Chrome do
+   Windows: botão de 4px no topo e outro na base.
+
+   COMO INSTALAR
+   1. Copie `barra-rolagem.css` e `barra-rolagem.js` para o projeto.
+   2. Importe o CSS e defina as cores (ver "CORES" abaixo).
+   3. Ponha a classe `tem-js` no <html> ANTES da primeira pintura:
+        HTML puro   <script>document.documentElement.classList.add('tem-js')</script>
+                    no <head>, antes da folha de estilo
+        Next/vinext <script dangerouslySetInnerHTML={{ __html:
+                      "document.documentElement.classList.add('tem-js')" }} />
+                    como PRIMEIRO filho do <body> no layout raiz
+      Tem que ser antes da pintura, senão a barra nativa some depois e a
+      página dá um pulo da largura dela. E tem que ser por classe: sem
+      JavaScript ela não entra e o visitante fica com a barra nativa. Nunca
+      existe página sem forma de rolar.
+   4. Carregue o `barra-rolagem.js` no fim do <body>.
+
+   CORES
+   A barra flutua sobre o conteúdo, então passa por cima de fundo claro e de
+   fundo escuro no mesmo site. Nenhuma cor sozinha dá os 3:1 que a WCAG pede
+   para componente de interface nos dois. Por isso são duas: o corpo resolve
+   o fundo claro e o halo de 1px resolve o escuro.
+
+     --barra-cor    corpo do polegar. Precisa de 3:1 contra a superfície mais
+                    CLARA do site.
+     --barra-halo   halo de 1px. Um tom claro do projeto, com alfa, que
+                    precisa de 3:1 contra a superfície mais ESCURA.
+     --barra-recuo  folga nas duas pontas, para a barra não encostar na borda
+                    da janela e parecer que continua para fora do site.
+
+   Medir, não estimar: a cor certa se confirma no pixel da captura, sobre as
+   duas superfícies reais do site (regra 9.7 do protocolo).
+   ========================================================================== */
+
+:root {
+  --barra-cor: #7f7c6a;
+  --barra-halo: rgba(255, 255, 255, 0.75);
+  --barra-recuo: 8px;
+  --barra-largura: 14px;
+  --barra-polegar: 7px;
+}
+
+/* A nativa só some onde existe JavaScript para desenhar a nossa, e só em
+   ponteiro fino: no toque a barra nativa já se esconde sozinha. */
+@media (hover: hover) and (pointer: fine) {
+  html.tem-js {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  html.tem-js::-webkit-scrollbar { display: none; }
+}
+
+.barra-rolagem {
+  position: fixed;
+  top: var(--barra-recuo);
+  right: 0;
+  bottom: var(--barra-recuo);
+  z-index: 2147483000;
+  width: var(--barra-largura);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 240ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.barra-rolagem--visivel {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* página curta demais para rolar: a barra não existe */
+.barra-rolagem--sem-uso { display: none; }
+
+.barra-rolagem__polegar {
+  position: absolute;
+  top: 0;
+  right: calc((var(--barra-largura) - var(--barra-polegar)) / 2);
+  width: var(--barra-polegar);
+  border-radius: 999px;
+  background: var(--barra-cor);
+  box-shadow: 0 0 0 1px var(--barra-halo);
+  cursor: grab;
+}
+
+.barra-rolagem--arrastando .barra-rolagem__polegar { cursor: grabbing; }
+
+/* Movimento reduzido: a barra continua aparecendo e sumindo, porque é
+   informação e não enfeite — só encurta. Reduz, não zera. */
+@media (prefers-reduced-motion: reduce) {
+  .barra-rolagem { transition-duration: 90ms; }
+}
+/* ==========================================================================
+   Varanda Estúdio Web — barra de rolagem própria
+   Modelo do estúdio. Copie este arquivo sem alterar e defina só as três
+   variáveis de cor no `:root` do projeto. Nasceu na Casa Conexão em 18/08/2026.
+
+   O QUE ELA FAZ, E POR QUE NÃO É A NATIVA
+   Aparece ao rolar, some depois de 900ms parada, reaparece quando o ponteiro
+   chega perto da borda direita, arrasta com o mouse e salta uma tela ao
+   clicar no trilho. A nativa não faz nada disso: não some sozinha no desktop,
+   não aceita transição de opacidade, e as setinhas das pontas não podem ser
+   removidas — assim que `scrollbar-width` recebe valor diferente de `auto`,
+   o Chrome passa a ignorar `::-webkit-scrollbar-button`. Medido no Chrome do
+   Windows: botão de 4px no topo e outro na base.
+
+   COMO INSTALAR
+   1. Copie `barra-rolagem.css` e `barra-rolagem.js` para o projeto.
+   2. Importe o CSS e defina as cores (ver "CORES" abaixo).
+   3. Ponha a classe `tem-js` no <html> ANTES da primeira pintura:
+        HTML puro   <script>document.documentElement.classList.add('tem-js')</script>
+                    no <head>, antes da folha de estilo
+        Next/vinext <script dangerouslySetInnerHTML={{ __html:
+                      "document.documentElement.classList.add('tem-js')" }} />
+                    como PRIMEIRO filho do <body> no layout raiz
+      Tem que ser antes da pintura, senão a barra nativa some depois e a
+      página dá um pulo da largura dela. E tem que ser por classe: sem
+      JavaScript ela não entra e o visitante fica com a barra nativa. Nunca
+      existe página sem forma de rolar.
+   4. Carregue o `barra-rolagem.js` no fim do <body>.
+
+   CORES
+   A barra flutua sobre o conteúdo, então passa por cima de fundo claro e de
+   fundo escuro no mesmo site. Nenhuma cor sozinha dá os 3:1 que a WCAG pede
+   para componente de interface nos dois. Por isso são duas: o corpo resolve
+   o fundo claro e o halo de 1px resolve o escuro.
+
+     --barra-cor    corpo do polegar. Precisa de 3:1 contra a superfície mais
+                    CLARA do site.
+     --barra-halo   halo de 1px. Um tom claro do projeto, com alfa, que
+                    precisa de 3:1 contra a superfície mais ESCURA.
+     --barra-recuo  folga nas duas pontas, para a barra não encostar na borda
+                    da janela e parecer que continua para fora do site.
+
+   Medir, não estimar: a cor certa se confirma no pixel da captura, sobre as
+   duas superfícies reais do site (regra 9.7 do protocolo).
+   ========================================================================== */
+
+:root {
+  --barra-cor: #7f7c6a;
+  --barra-halo: rgba(255, 255, 255, 0.75);
+  --barra-recuo: 8px;
+  --barra-largura: 14px;
+  --barra-polegar: 7px;
+}
+
+/* A nativa só some onde existe JavaScript para desenhar a nossa, e só em
+   ponteiro fino: no toque a barra nativa já se esconde sozinha. */
+@media (hover: hover) and (pointer: fine) {
+  html.tem-js {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  html.tem-js::-webkit-scrollbar { display: none; }
+}
+
+.barra-rolagem {
+  position: fixed;
+  top: var(--barra-recuo);
+  right: 0;
+  bottom: var(--barra-recuo);
+  z-index: 2147483000;
+  width: var(--barra-largura);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 240ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.barra-rolagem--visivel {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* página curta demais para rolar: a barra não existe */
+.barra-rolagem--sem-uso { display: none; }
+
+.barra-rolagem__polegar {
+  position: absolute;
+  top: 0;
+  right: calc((var(--barra-largura) - var(--barra-polegar)) / 2);
+  width: var(--barra-polegar);
+  border-radius: 999px;
+  background: var(--barra-cor);
+  box-shadow: 0 0 0 1px var(--barra-halo);
+  cursor: grab;
+}
+
+.barra-rolagem--arrastando .barra-rolagem__polegar { cursor: grabbing; }
+
+/* Movimento reduzido: a barra continua aparecendo e sumindo, porque é
+   informação e não enfeite — só encurta. Reduz, não zera. */
+@media (prefers-reduced-motion: reduce) {
+  .barra-rolagem { transition-duration: 90ms; }
+}
+
+/* --- cores deste projeto ------------------------------------------------- *
+   Único trecho que difere do modelo em ferramentas/barra-rolagem/. As duas
+   cores foram medidas contra as superfícies reais de Nascente, e o mínimo da
+   WCAG para componente de interface é 3:1.
+ * ------------------------------------------------------------------------ */
+
+:root {
+  --barra-cor: #786e5f;
+  --barra-halo: rgba(239, 232, 220, 0.75);
+}

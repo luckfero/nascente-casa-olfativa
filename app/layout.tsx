@@ -6,6 +6,7 @@ import "./base.css";
 import "./shell.css";
 import "./editorial.css";
 import "./commerce.css";
+import "./barra-rolagem.css";
 
 /* Domínio próprio desde 2026-08-10. Sem valor padrão, `metadataBase` ficava
    indefinido e o canonical saía como caminho relativo — ambíguo, porque o
@@ -67,7 +68,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body>
+        {/* Tem que rodar antes da primeira pintura: se a barra nativa sumir
+            depois, a página dá um pulo da largura dela. E é por classe de
+            propósito — sem JavaScript ela não entra e o visitante fica com a
+            barra nativa. Nunca existe página sem forma de rolar. */}
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('tem-js')" }} />
+        {children}
+        <script src="/barra-rolagem.js" defer />
+      </body>
     </html>
   );
 }
