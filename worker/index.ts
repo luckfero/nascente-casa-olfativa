@@ -27,14 +27,75 @@ interface WorkerHandler {
  *                  como se monta clickjacking.
  *   Referrer       ao sair para outro domínio vai só a origem, nunca o
  *                  caminho completo que a pessoa estava visitando.
- *   Permissions    câmera, microfone e localização ficam desligados. O site
- *                  não pede nada disso; sem o cabeçalho, um script injetado
- *                  poderia pedir.
+ *   Permissions    câmera, microfone, localização, pagamento e USB ficam
+ *                  desligados. O site não pede nada disso (o checkout é
+ *                  simulado, sem campo financeiro); sem o cabeçalho, um
+ *                  script injetado poderia pedir.
  *   COOP           isola a janela de quem a abriu, cortando acesso cruzado.
+ *   CSP            em modo de observação: não bloqueia nada, só registra no
+ *                  console do navegador o que violaria a política. Depois de
+ *                  uma temporada assim, a chave vira `Content-Security-Policy`
+ *                  e passa a valer de verdade. `'unsafe-inline'` é obrigatório
+ *                  enquanto o vinext emitir script inline sem nonce.
+ *
+ * ANTES DE TIRAR O `-Report-Only`, LEIA ISTO. O código do site não carrega
+ * nada de terceiro, mas a resposta que chega ao visitante carrega: medido em
+ * 2026-09-09, toda requisição com `accept: text/html` volta de produção com um
+ * `<script src="https://static.cloudflareinsights.com/beacon.min.js/...">` que
+ * a borda injeta (Web Analytics, ligado no painel da Cloudflare, não neste
+ * repositório; 5 medições em 5, e ausente quando o `accept` não pede HTML,
+ * que é por que nenhuma auditoria por curl seco tinha visto).
+ *
+ * Os dois endereços da Cloudflare abaixo existem por causa disso, e a
+ * liberação foi feita em 09/09/2026. Vale escrever o porquê, porque de fora
+ * parece exceção arbitrária numa política que fora isso é `'self'` inteira:
+ *
+ *   - **Eles são da própria borda que hospeda o site.** Não são terceiro que
+ *     alguém escolheu incluir: são a camada que responde antes do Worker.
+ *   - **Entram em toda página sem passar por este repositório.** Ninguém vai
+ *     encontrá-los lendo o código, e por isso ninguém ia lembrar deles na
+ *     hora de fechar a política.
+ *   - **Sem estas duas linhas, a política derruba a analítica sem avisar.**
+ *     O script é barrado por `script-src` e o envio dele por `connect-src`,
+ *     em silêncio: os números simplesmente param de chegar, e a única pista
+ *     é uma linha no console de quem por acaso estiver com ele aberto.
+ *
+ * A política continua em `-Report-Only` de propósito. **Promover para
+ * `Content-Security-Policy` não é decisão deste arquivo hoje**: primeiro
+ * publica-se, olha-se o console em produção por uma temporada, e só então se
+ * fecha. Enquanto for observação, nada quebra e a violação só é registrada,
+ * que é exatamente o sinal que a temporada existe para dar.
  */
+const CSP_EM_OBSERVACAO = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data:",
+  "font-src 'self'",
+  "connect-src 'self' https://cloudflareinsights.com",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join("; ");
+
+/* `upgrade-insecure-requests` SAIU daqui em 09/09/2026, e volta junto com a
+   promoção da política.
+
+   Medido no console do Chrome: "The Content Security Policy directive
+   upgrade-insecure-requests is ignored when delivered in a report-only
+   policy". Em modo relatório ela não faz absolutamente nada, e ainda escreve
+   um erro a cada carregamento de página. Isso atrapalha justamente a
+   conferência que autoriza promover a política, que é abrir o console e não
+   achar violação: com esta linha, toda página já começa com uma. Deixá-la
+   aqui é pagar ruído por zero proteção.
+
+   Quando o cabeçalho virar `Content-Security-Policy` sem `-Report-Only`, ela
+   entra de volta na mesma linha. */
 const cabecalhosDeSeguranca: Record<string, string> = {
+  "Content-Security-Policy-Report-Only": CSP_EM_OBSERVACAO,
   "Cross-Origin-Opener-Policy": "same-origin",
-  "Permissions-Policy": "camera=(), geolocation=(), microphone=()",
+  "Permissions-Policy": "camera=(), geolocation=(), microphone=(), payment=(), usb=()",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   /* Um ano. Começou em um dia, em 2026-08-10, de propósito: quem memoriza
      esta ordem é o navegador do visitante, não o servidor, e parar de enviar

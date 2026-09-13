@@ -7,10 +7,24 @@
 # `nosniff` é o que importa aqui: impede o navegador de ignorar o
 # Content-Type declarado e adivinhar o tipo do arquivo — que é como um
 # arquivo servido como imagem acaba executado como script.
+#
+# Os quatro cabeçalhos abaixo do `nosniff` repetem, palavra por palavra, o
+# que `worker/index.ts` já garante no HTML. Sem eles, um visitante cuja
+# primeira resposta HTTPS deste host seja um arquivo (uma imagem linkada de
+# fora, por exemplo) não recebia o HSTS, e o `favicon.svg` aberto direto
+# podia ser embutido em iframe de terceiro, porque SVG é documento.
+#
+# `X-Robots-Tag: noindex` é o único jeito de dizer "não indexe" para as 180
+# imagens: elas não têm meta tag, e o site é conceitual.
 
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000
+  X-Frame-Options: DENY
+  Cross-Origin-Opener-Policy: same-origin
+  Permissions-Policy: camera=(), geolocation=(), microphone=(), payment=(), usb=()
+  X-Robots-Tag: noindex
 
 # Conteúdo com hash no nome nunca muda: pode ficar em cache para sempre.
 /assets/*
@@ -23,3 +37,23 @@
 # um mês é seguro e ainda evita rebaixar quando a imagem trocar.
 /images/r/*
   Cache-Control: public, max-age=2592000
+
+# Os originais em hq/ são o fallback de todo `<picture>`. Saíam com
+# `max-age=0, must-revalidate`, ou seja, uma ida à rede em toda visita. Mesmo
+# prazo das variantes, pelo mesmo motivo: as duas pastas são regeradas juntas.
+/images/hq/*
+  Cache-Control: public, max-age=2592000
+
+# O cartão de link, que deixou de sair de hq/ em 09/09/2026. Sem uma regra
+# própria esta pasta nova cairia só no `/*` acima, sem Cache-Control nenhum, e
+# todo raspador de prévia voltaria à origem. Mesmo prazo das outras imagens.
+/images/og/*
+  Cache-Control: public, max-age=2592000
+
+# O favicon é versionado pelo `?v=` do layout, então pode durar.
+/favicon.svg
+  Cache-Control: public, max-age=2592000
+
+# A barra de rolagem não tem hash no nome: um dia, com revalidação.
+/barra-rolagem.js
+  Cache-Control: public, max-age=86400, must-revalidate
