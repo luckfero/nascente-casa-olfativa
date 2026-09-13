@@ -19,12 +19,21 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE_DIR = join(root, "public", "images", "hq");
 const OUT_DIR = join(root, "public", "images", "r");
 
-/** Larguras alvo. Imagens menores que a largura nunca são ampliadas. */
+/** Larguras alvo. Imagens menores que a largura nunca são ampliadas.
+ *
+ *  A mesma lista existe em `lib/images.ts` (IMAGE_WIDTHS), que é o que monta o
+ *  `srcset`. As duas precisam continuar iguais: mudar só uma publica endereço
+ *  de variante que não foi gerada. O script é ESM e a lib é TypeScript, então
+ *  hoje não há como importar uma da outra sem etapa de build; o que existe no
+ *  lugar é o aviso do fim da execução, que denuncia a divergência na hora de
+ *  gerar em vez de no navegador do visitante. */
 const WIDTHS = [400, 800, 1200, 1600];
 
-const FFMPEG =
-  process.env.FFMPEG_PATH ??
-  "C:/Users/lucca/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-9.0-full_build/bin/ffmpeg.exe";
+/* O repositório é público: o caminho de instalação que estava aqui como
+   reserva carregava o nome de usuário do Windows e a versão exata do ffmpeg
+   da máquina de desenvolvimento. Quem tiver o executável fora do PATH define
+   FFMPEG_PATH. */
+const FFMPEG = process.env.FFMPEG_PATH ?? "ffmpeg";
 const FFPROBE = FFMPEG.replace(/ffmpeg(\.exe)?$/, "ffprobe$1");
 
 async function widthOf(file) {
@@ -62,6 +71,10 @@ async function main() {
   const files = (await readdir(SOURCE_DIR)).filter((f) => f.endsWith(".webp"));
   let written = 0;
   let savedBytes = 0;
+  /* Toda largura pulada por ser maior que a origem: o `srcset` de
+     lib/images.ts emite as quatro de qualquer jeito, então a que ficou de
+     fora vira 404 no navegador de quem visitar. */
+  const puladas = [];
 
   for (const file of files) {
     const source = join(SOURCE_DIR, file);
@@ -70,7 +83,10 @@ async function main() {
     const originalSize = (await stat(source)).size;
 
     for (const width of WIDTHS) {
-      if (width > sourceWidth) continue;
+      if (width > sourceWidth) {
+        puladas.push(`${name}-${width}`);
+        continue;
+      }
       for (const format of ["webp", "avif"]) {
         const target = join(OUT_DIR, `${name}-${width}.${format}`);
         await encode(source, target, width, format);
@@ -87,6 +103,15 @@ async function main() {
     `\n${written} variantes geradas em public/images/r/.` +
       `\nEconomia no menor tamanho AVIF vs. original: ~${(savedBytes / 1024 / 1024).toFixed(1)} MB no total.`,
   );
+
+  if (puladas.length > 0) {
+    console.warn(
+      `\nATENÇÃO: ${puladas.length} largura(s) não foram geradas por serem maiores` +
+        ` que a foto de origem, e o srcset de lib/images.ts vai apontar para elas` +
+        ` assim mesmo:\n  ${puladas.join("\n  ")}` +
+        `\nOu a origem sobe de tamanho, ou a largura sai de WIDTHS e de IMAGE_WIDTHS.`,
+    );
+  }
 }
 
 main().catch((error) => {

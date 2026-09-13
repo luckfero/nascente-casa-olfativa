@@ -80,6 +80,9 @@ alguma foto em `hq/`:
 node scripts/optimize-images.mjs
 ```
 
+O script chama `ffmpeg` e `ffprobe` pelo PATH. Se o executável estiver em
+outro lugar, defina `FFMPEG_PATH` com o caminho completo antes de rodar.
+
 ## Publicação no Cloudflare pelo GitHub
 
 1. No painel do Cloudflare, acesse **Workers & Pages** e importe um repositório Git.
@@ -89,9 +92,11 @@ node scripts/optimize-images.mjs
 5. Não é preciso informar diretório de saída — o Wrangler usa `wrangler.jsonc`
    e publica `dist/client` junto ao Worker.
 
-Depois do primeiro deploy, defina `NEXT_PUBLIC_SITE_URL` com a URL pública e
-publique de novo. Ela ativa as URLs absolutas dos metadados sociais, do
-`robots.txt` e do sitemap.
+Não é preciso definir `NEXT_PUBLIC_SITE_URL`. O domínio público já é o padrão
+do `metadataBase` em `app/layout.tsx`, e é dele que saem as URLs absolutas dos
+metadados sociais. A variável só serve para apontar o mesmo código para outro
+host. O `robots.txt` é fixo (`app/robots.ts`) e não lê variável nenhuma, e o
+projeto não tem mapa de páginas, por decisão escrita nos dois arquivos.
 
 O projeto não depende de banco de dados nem de chaves de API.
 

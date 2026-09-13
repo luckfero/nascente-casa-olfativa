@@ -13,6 +13,9 @@
 # Variáveis de ambiente
 .env*
 !.env.example
+# O wrangler guarda segredo local em .dev.vars, que não casa com .env*.
+.dev.vars
+.dev.vars.*
 
 # TypeScript
 next-env.d.ts
