@@ -43,7 +43,22 @@ function lowestPrice(product: Product): number {
 function inBand(price: number, band: PriceBand): boolean {
   if (band === "ate-60") return price <= 60;
   if (band === "60-120") return price > 60 && price <= 120;
-  return price > 120;
+  /* A última faixa é nomeada em vez de virar o "senão": antes, qualquer
+     valor desconhecido caía aqui e filtrava o catálogo como se fosse a faixa
+     cara. */
+  if (band === "acima-120") return price > 120;
+  return true;
+}
+
+/* Guardas para o estado que vem da barra de endereço, que é texto livre. */
+export function isPriceBand(value: string): value is PriceBand {
+  return PRICE_BANDS.some((band) => band.id === value);
+}
+
+const SORT_KEYS: SortKey[] = ["destaque", "novidades", "preco-asc", "preco-desc", "nome"];
+
+export function isSortKey(value: string): value is SortKey {
+  return SORT_KEYS.includes(value as SortKey);
 }
 
 /** Normaliza para busca tolerante a acento: "colonia" encontra "Colônia". */
@@ -87,7 +102,15 @@ export function applyFilters(state: FilterState, source: Product[] = products): 
       sorted.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
       break;
     case "novidades":
-      sorted.sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
+      /* Do mais novo para o mais antigo, pela data de lançamento do produto.
+         Antes esta linha era a cópia exata do caso "destaque", então escolher
+         "Novidades" devolvia a mesma lista, na mesma ordem, sem mudar um
+         cartão de lugar. O campo `launchedAt` nasceu para isto.
+
+         Comparação de texto e não de `Date`: as datas são ISO `AAAA-MM-DD`,
+         que ordena igual em texto, e assim não se cria objeto de data por
+         comparação nem se depende do fuso de quem abrir a página. */
+      sorted.sort((a, b) => (a.launchedAt < b.launchedAt ? 1 : a.launchedAt > b.launchedAt ? -1 : 0));
       break;
     default:
       sorted.sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)));

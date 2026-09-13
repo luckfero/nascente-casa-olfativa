@@ -11,9 +11,10 @@ import {
   describeFilters,
   EMPTY_FILTERS,
   INTENSITY_LEVELS,
+  isPriceBand,
+  isSortKey,
   PRICE_BANDS,
   type FilterState,
-  type PriceBand,
   type SortKey,
 } from "@/lib/filters";
 import { SIZES } from "@/lib/images";
@@ -30,13 +31,16 @@ function readInitialFilters(): FilterState {
   if (typeof window === "undefined") return EMPTY_FILTERS;
   const params = new URLSearchParams(window.location.search);
   const list = (key: string) => params.get(key)?.split(",").filter(Boolean) ?? [];
+  /* Faixa e ordem passam por guarda: o que vem na URL é texto livre, e um
+     valor inventado antes era aceito como se fosse tipo válido. */
+  const ordem = params.get("ordem");
   return {
     categorias: list("categoria"),
     colecoes: list("colecao"),
     intensidades: list("intensidade").map(Number).filter(Number.isFinite),
-    faixas: list("preco") as PriceBand[],
+    faixas: list("preco").filter(isPriceBand),
     busca: params.get("q") ?? "",
-    ordem: (params.get("ordem") as SortKey) ?? "destaque",
+    ordem: ordem && isSortKey(ordem) ? ordem : "destaque",
   };
 }
 
@@ -183,7 +187,7 @@ export function CatalogPage() {
         <p className="eyebrow">Loja</p>
         <h1>{filters.busca ? `Resultados para “${filters.busca}”` : "Todos os produtos"}</h1>
         <p className="lede">
-          Colônias, cuidados para o corpo, perfumação de ambiente e presentes —
+          Colônias, cuidados para o corpo, perfumação de ambiente e presentes,
           organizados por coleção, intensidade e momento de uso.
         </p>
       </div>

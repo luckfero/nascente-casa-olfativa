@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { money } from "@/lib/catalog";
 import { SIZES } from "@/lib/images";
 import { formatCep, isValidCep, quoteShipping, FREE_SHIPPING_FROM } from "@/lib/shipping";
@@ -153,6 +153,30 @@ export function CheckoutPage() {
   const [payment, setPayment] = useState<string>("");
   const [consent, setConsent] = useState(false);
 
+  /* Cada etapa troca o `<h1>` do painel, mas o foco continuava no botão
+     "Continuar" da etapa anterior: quem navega por teclado seguia dentro de
+     um conteúdo que não existe mais. O aviso sonoro já existe (`announce`);
+     o que faltava era levar o cursor junto.
+
+     `preventScroll` porque quem rola a página aqui é o `go()`, com rolagem
+     suave até o topo, e `tabIndex = -1` porque o título não entra na ordem
+     de tabulação, só recebe foco de programa. Sem efeito visual: a folha
+     tira o contorno de foco que não é `:focus-visible` (app/base.css). */
+  const painelRef = useRef<HTMLDivElement>(null);
+  const etapaAnterior = useRef<Step | null>(null);
+
+  useEffect(() => {
+    if (etapaAnterior.current === null || etapaAnterior.current === step) {
+      etapaAnterior.current = step;
+      return;
+    }
+    etapaAnterior.current = step;
+    const titulo = painelRef.current?.querySelector("h1");
+    if (!titulo) return;
+    titulo.tabIndex = -1;
+    titulo.focus({ preventScroll: true });
+  }, [step]);
+
   const shipping = quoteShipping(addr.cep, subtotal);
   const freight = shipping.status === "ok" ? shipping.quote.price : 0;
   const total = subtotal + freight;
@@ -231,8 +255,15 @@ export function CheckoutPage() {
           <p className="eyebrow">Pedido registrado</p>
           <h1>Obrigado, {id.nome.split(" ")[0] || "visitante"}.</h1>
           <p className="confirmation__order">{order}</p>
+          {/* Esta linha dizia "Enviamos o resumo para <e-mail>", e o parágrafo
+              logo abaixo dizia que nenhum dado saiu do navegador. As duas
+              coisas não podem ser verdade ao mesmo tempo, e quem lê acredita na
+              primeira. Numa demonstração, o jeito de manter a cena de pé sem
+              mentir é dizer o que aconteceria na loja no ar e o que acontece
+              aqui. */}
           <p className="lede" style={{ textAlign: "center" }}>
-            Enviamos o resumo para {id.email || "o e-mail informado"}.
+            Numa loja no ar, o resumo iria agora para{" "}
+            {id.email || "o e-mail informado"}. Aqui ele para nesta tela.
           </p>
           <p className="confirmation__disclosure">
             Este site é um projeto autoral de portfólio da Varanda Estúdio Web.
@@ -268,7 +299,7 @@ export function CheckoutPage() {
       </ol>
 
       <div className="checkout">
-        <div className="checkout__panel">
+        <div className="checkout__panel" ref={painelRef}>
           {step === "identificacao" && (
             <>
               <h1>Identificação</h1>
@@ -419,7 +450,7 @@ export function CheckoutPage() {
               <h1>Pagamento</h1>
               <p className="field-hint">
                 Escolha a forma preferida. Nenhum dado financeiro é solicitado
-                nesta demonstração — não há campo de cartão, CVV ou documento.
+                nesta demonstração: não há campo de cartão, CVV ou documento.
               </p>
               <fieldset className="pay-options">
                 <legend className="visually-hidden">Forma de pagamento</legend>
@@ -454,7 +485,7 @@ export function CheckoutPage() {
               <div>
                 <h2 className="eyebrow">Entrega</h2>
                 <p style={{ marginTop: "var(--s-2)", color: "var(--ink-soft)" }}>
-                  {id.nome} — {addr.rua}, {addr.numero}
+                  {id.nome} · {addr.rua}, {addr.numero}
                   {addr.complemento ? `, ${addr.complemento}` : ""} · {addr.bairro},{" "}
                   {addr.cidade}/{addr.uf} · {addr.cep}
                 </p>

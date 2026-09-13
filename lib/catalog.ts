@@ -26,6 +26,23 @@ export type Product = {
   use: string;
   care: string;
   image: string;
+  /**
+   * Data de lançamento, em ISO (`AAAA-MM-DD`).
+   *
+   * Existe para a ordenação "Novidades" da loja. Sem ela, "Novidades" caía no
+   * mesmo critério de "Destaque" e devolvia a lista **na mesma ordem**: um
+   * seletor com duas opções que fazem a mesma coisa, que é exatamente o
+   * detalhe que alguém testa numa demonstração de loja.
+   *
+   * Obrigatória, e não opcional de propósito: produto novo sem data cairia no
+   * fim da lista de novidades em silêncio. Assim o TypeScript cobra.
+   *
+   * As datas são inventadas, como o resto do catálogo conceitual, e seguem a
+   * linha do tempo escrita na página "A casa": casa em 2021 (vela, difusor e
+   * spray), corpo e perfumaria em 2024 (colônias, sabonete, hidratante e
+   * óleo), presentes depois disso.
+   */
+  launchedAt: string;
   featured?: boolean;
 };
 
@@ -82,6 +99,7 @@ export const products: Product[] = [
     use: "Borrife nos pulsos, no colo e atrás das orelhas, sem esfregar.",
     care: "Uso externo. Evite contato com os olhos e conserve ao abrigo da luz.",
     image: "/images/hq/colonia-chuva-clara.webp",
+    launchedAt: "2024-03-12",
     featured: true,
   },
   {
@@ -103,6 +121,7 @@ export const products: Product[] = [
     use: "Na primeira queima, deixe a cera derreter por toda a superfície.",
     care: "Nunca deixe a vela acesa sem supervisão.",
     image: "/images/hq/vela-folha-quente.webp",
+    launchedAt: "2021-03-18",
     featured: true,
   },
   {
@@ -121,6 +140,7 @@ export const products: Product[] = [
     use: "Experimente uma fragrância por dia e observe sua evolução.",
     care: "Guarde os frascos na caixa, longe da luz e do calor.",
     image: "/images/hq/kit-descoberta.webp",
+    launchedAt: "2025-05-20",
     featured: true,
   },
   {
@@ -142,6 +162,7 @@ export const products: Product[] = [
     use: "Borrife nos pontos de pulsação e reaplique quando desejar.",
     care: "Uso externo. Mantenha longe de fontes de calor.",
     image: "/images/hq/colonia-folha-quente.webp",
+    launchedAt: "2024-04-09",
   },
   {
     id: "colonia-sol",
@@ -162,6 +183,7 @@ export const products: Product[] = [
     use: "Aplique nos pontos de pulsação, mantendo distância da pele.",
     care: "Uso externo. Não aplique sobre pele sensibilizada.",
     image: "/images/hq/colonia-sol-de-dentro.webp",
+    launchedAt: "2024-05-14",
   },
   {
     id: "sabonete-chuva",
@@ -179,6 +201,7 @@ export const products: Product[] = [
     use: "Aplique sobre a pele úmida, massageie e enxágue.",
     care: "Uso externo. Suspenda o uso em caso de irritação.",
     image: "/images/hq/sabonete-chuva-clara.webp",
+    launchedAt: "2024-08-06",
   },
   {
     id: "hidratante-folha",
@@ -196,6 +219,7 @@ export const products: Product[] = [
     use: "Massageie sobre a pele limpa até completa absorção.",
     care: "Uso externo. Evite áreas sensibilizadas.",
     image: "/images/hq/hidratante-folha-quente.webp",
+    launchedAt: "2024-09-10",
   },
   {
     id: "oleo-sol",
@@ -213,6 +237,7 @@ export const products: Product[] = [
     use: "Aplique uma pequena quantidade sobre a pele úmida e enxágue.",
     care: "O produto pode tornar o piso escorregadio. Uso externo.",
     image: "/images/hq/oleo-sol-de-dentro.webp",
+    launchedAt: "2024-10-15",
   },
   {
     id: "difusor-chuva",
@@ -230,6 +255,7 @@ export const products: Product[] = [
     use: "Insira as varetas e vire-as periodicamente.",
     care: "Mantenha fora do alcance de crianças e animais.",
     image: "/images/hq/difusor-chuva-clara.webp",
+    launchedAt: "2021-05-06",
   },
   {
     id: "spray-sol",
@@ -247,6 +273,7 @@ export const products: Product[] = [
     use: "Borrife no ambiente, distante de superfícies delicadas.",
     care: "Não aplique diretamente sobre a pele, móveis ou animais.",
     image: "/images/hq/spray-sol-de-dentro.webp",
+    launchedAt: "2021-09-22",
   },
   {
     id: "ritual-corpo",
@@ -264,6 +291,7 @@ export const products: Product[] = [
     use: "Use os produtos em sequência para construir camadas.",
     care: "Confira os cuidados indicados em cada produto.",
     image: "/images/hq/ritual-do-corpo.webp",
+    launchedAt: "2025-09-02",
   },
   {
     id: "casa-nascente",
@@ -281,6 +309,7 @@ export const products: Product[] = [
     use: "Use os produtos juntos ou em momentos diferentes.",
     care: "Siga os cuidados de segurança da vela e do spray.",
     image: "/images/hq/casa-nascente.webp",
+    launchedAt: "2026-02-10",
   },
   {
     id: "presente-completo",
@@ -298,6 +327,7 @@ export const products: Product[] = [
     use: "Escolha a coleção e escreva uma mensagem para acompanhar.",
     care: "Confira os cuidados de cada produto incluído.",
     image: "/images/hq/presente-completo.webp",
+    launchedAt: "2026-06-16",
     featured: true,
   },
 ];

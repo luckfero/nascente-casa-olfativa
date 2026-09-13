@@ -168,13 +168,15 @@ const INTENSITY_WORDS: Record<number, string> = {
 };
 
 export function Intensity({ level }: { level: number }) {
+  /* Sem travessão: este rótulo é lido em voz alta pelo leitor de tela, e a
+     vírgula é a pausa que a frase pede. Quando o nível não tiver palavra, a
+     vírgula sai junto, em vez de ficar pendurada no fim. */
+  const palavra = INTENSITY_WORDS[level];
+  const rotulo = `Intensidade ${level} de 5${palavra ? `, ${palavra}` : ""}`;
+
   return (
     <div className="intensity">
-      <span
-        className="intensity__track"
-        role="img"
-        aria-label={`Intensidade ${level} de 5 — ${INTENSITY_WORDS[level] ?? ""}`}
-      >
+      <span className="intensity__track" role="img" aria-label={rotulo}>
         {[1, 2, 3, 4, 5].map((step) => (
           <i key={step} data-on={step <= level} />
         ))}
@@ -188,14 +190,33 @@ export function Intensity({ level }: { level: number }) {
 
 /* -------------------------------------------------------------- utilidades -- */
 
+/* Quantas travas estão ativas agora, e o valor que o body tinha antes da
+   primeira delas. Precisa ser de módulo, e não de componente: o menu do
+   cabeçalho e a gaveta da sacola travam a mesma propriedade do mesmo body.
+
+   Com uma variável por componente, quem fechasse primeiro devolvia o valor
+   que guardou. Nos dois sentidos dava defeito: fechar o menu com a gaveta
+   aberta soltava a rolagem do fundo, e fechar a gaveta depois do menu
+   escrevia "hidden" de volta num body sem nada aberto, ou seja, a página
+   parava de rolar até recarregar. O caminho é alcançável: em telas de até
+   900px o cabeçalho fica acima do scrim (app/shell.css), então o botão da
+   sacola continua clicável com o menu aberto. */
+let travasAtivas = 0;
+let overflowOriginal = "";
+
 /** Trava o scroll do fundo enquanto gaveta/overlay está aberto. */
 export function useScrollLock(active: boolean) {
   useEffect(() => {
     if (!active) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    if (travasAtivas === 0) {
+      overflowOriginal = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+    }
+    travasAtivas += 1;
     return () => {
-      document.body.style.overflow = previous;
+      travasAtivas -= 1;
+      /* Só a última a sair devolve o valor original. */
+      if (travasAtivas === 0) document.body.style.overflow = overflowOriginal;
     };
   }, [active]);
 }
@@ -253,20 +274,18 @@ export function useFocusTrap(active: boolean, onClose: () => void) {
 }
 
 /**
- * Progresso de rolagem de 0 a 1 sobre a altura do primeiro `.hero` da página.
- *
- * Devolve 0 no topo e 1 exatamente quando a fotografia do hero saiu de vista —
- * é isso que permite ao cabeçalho clarear aos poucos em vez de trocar de
- * estado num limiar. Em páginas sem hero o valor vira 1 de imediato, e o
- * cabeçalho já nasce opaco.
- */
-/**
  * Progresso da rolagem sobre o hero, de 0 a 1.
+ *
+ * Devolve 0 no topo e 1 exatamente quando a fotografia saiu de vista, que é
+ * o que permite ao cabeçalho clarear aos poucos em vez de trocar de estado
+ * num limiar. A referência é o `.hero` da página ou o `.quiz-result` do guia
+ * olfativo, que também abre com imagem. Em páginas sem nenhum dos dois o
+ * valor vira 1 de imediato, e o cabeçalho já nasce opaco.
  *
  * Recebe a rota porque o cabeçalho é montado uma vez e sobrevive às
  * navegações do lado do cliente. Sem essa dependência o efeito rodava só
  * na primeira página: ao voltar para a home, a referência do hero era a
- * da página anterior — ou nenhuma —, e a barra saltava de transparente
+ * da página anterior (ou nenhuma), e a barra saltava de transparente
  * para branca no primeiro toque de rolagem.
  */
 export function useHeroProgress(rota: string) {
