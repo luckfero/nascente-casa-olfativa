@@ -1,0 +1,14 @@
+Licencas das duas familias que este site serve. Escrito em 12/09/2026.
+
+O site importa @fontsource-variable/bodoni-moda e @fontsource-variable/jost, e
+o empacotador embute os arquivos da fonte no CSS publicado. Servir arquivo de
+fonte e redistribuir fonte, e a SIL Open Font License 1.1 exige que o aviso
+acompanhe a redistribuicao.
+
+As duas tem LICENSE dentro do proprio pacote, e os arquivos daqui sao copia
+fiel deles. node_modules nao e publicado; public/ e copiada inteira para
+dist/client, entao e daqui que a licenca sobe junto com o site.
+
+Recopiar daqui quando um pacote for atualizado:
+  node_modules/@fontsource-variable/bodoni-moda/LICENSE
+  node_modules/@fontsource-variable/jost/LICENSE
