@@ -39,11 +39,36 @@ export const metadata: Metadata = {
       "Três coleções autorais para perfumar a pele, a casa e os momentos entre os dois.",
     type: "website",
     locale: "pt_BR",
+    /* O cartão de link é peça JPEG própria, e não a foto de origem.
+
+       Antes daqui saía `/images/hq/hero-central-nascente.webp`: 326.766 bytes
+       e 3344x1882, servindo ao mesmo tempo de fundo da hero e de cartão. Duas
+       coisas erradas nisso. A primeira é o tamanho: quem monta o cartão pede
+       1200x630, e mandar uma foto quase três vezes mais larga é atravessar a
+       rede com bytes que ninguém vê. A segunda é o formato, e é a que decide:
+       **não há como medir daqui como WhatsApp e LinkedIn tratam WebP na
+       prévia.** Diante de dúvida que não se resolve por medição, vale o
+       formato que todos aceitam sem discussão, que é JPEG.
+
+       A peça é recorte central da mesma foto, no mesmo enquadramento: corte de
+       3344x1756 (a altura que dá a proporção 1200:630) e redução para 1200x630.
+       Regerar com
+
+         ffmpeg -y -i public/images/hq/hero-central-nascente.webp \
+           -vf "crop=3344:1756,scale=1200:630:flags=lanczos" \
+           -frames:v 1 -q:v 3 public/images/og/cartao-1200x630.jpg
+
+       A WebP continua onde sempre esteve, servindo a página.
+
+       Conferência é por BYTES, nunca pelo código HTTP (regra 9.30): assinatura
+       `FF D8 FF`, marcador SOF com 1200x630 e corpo acima de alguns KB. Rota
+       de imagem que responde não é o mesmo que imagem que existe. */
     images: [
       {
-        url: "/images/hq/hero-central-nascente.webp",
-        width: 3344,
-        height: 1882,
+        url: "/images/og/cartao-1200x630.jpg",
+        width: 1200,
+        height: 630,
+        type: "image/jpeg",
         alt: "Frasco Nascente em vidro âmbar entre folhas e bergamota",
       },
     ],

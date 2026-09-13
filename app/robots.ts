@@ -15,6 +15,14 @@ import type { MetadataRoute } from "next";
  *
  * Sem `sitemap`: um mapa de páginas que não devem ser indexadas não tem
  * função, e ainda convida o rastreador a percorrer o catálogo inteiro.
+ *
+ * E esta é a **única** casa dessa decisão desde 09/09/2026. Havia um
+ * `app/sitemap.ts` ao lado, que respondia 200 em `/sitemap.xml` com um
+ * `urlset` vazio de 110 bytes: um mapa que dizia "existo e não tenho nada
+ * dentro", contradizendo em silêncio o que está escrito aqui. Ele foi
+ * apagado, e agora `/sitemap.xml` simplesmente não existe. Uma decisão só,
+ * escrita num lugar só. Quem um dia quiser mapa de verdade recria o arquivo,
+ * e a primeira coisa a fazer é vir aqui contar o outro lado.
  */
 export default function robots(): MetadataRoute.Robots {
   return {
