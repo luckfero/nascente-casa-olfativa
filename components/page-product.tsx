@@ -49,9 +49,11 @@ export function ProductPage({ product }: { product: Product }) {
       <div className="product">
         <div className="product__media">
           <figure>
+            {/* Sem travessão no alt: ele é lido em voz alta pelo leitor de
+                tela, e o ponto dá a pausa entre o nome e a descrição. */}
             <Picture
               src={product.image}
-              alt={`${product.name} — ${product.description}`}
+              alt={`${product.name}. ${product.description}`}
               sizes={SIZES.product}
               priority
             />

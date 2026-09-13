@@ -351,7 +351,18 @@ p { text-wrap: pretty; }
   font-size: var(--t-xs);
   color: var(--state-error);
 }
-.field-error::before { content: "—"; }
+/* Este marcador era o caractere de travessão, escrito no `content`. Conteúdo
+   gerado entra no nome acessível: o leitor de tela anunciava um travessão
+   antes de cada mensagem de erro, e o registro de escrita da casa não tem
+   travessão em lugar nenhum que o visitante alcance. Desenhado como filete,
+   ele continua sendo o mesmo sinal na tela e deixa de ser texto. */
+.field-error::before {
+  content: "";
+  flex: none;
+  width: 0.75rem;
+  height: 1px;
+  background: currentColor;
+}
 
 .field-hint { font-size: var(--t-xs); color: var(--ink-faint); }
 

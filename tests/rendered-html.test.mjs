@@ -21,7 +21,7 @@ async function fetchRoute(path) {
 
 const CABECALHOS_ESPERADOS = {
   "cross-origin-opener-policy": "same-origin",
-  "permissions-policy": "camera=(), geolocation=(), microphone=()",
+  "permissions-policy": "camera=(), geolocation=(), microphone=(), payment=(), usb=()",
   "referrer-policy": "strict-origin-when-cross-origin",
   "strict-transport-security": "max-age=31536000",
   "x-content-type-options": "nosniff",
@@ -44,6 +44,17 @@ for (const [rotulo, rota] of [
     }
   });
 }
+
+/* A CSP está em observação: o que o teste protege é a existência dela e as
+   diretivas que já valeriam mesmo com `unsafe-inline` no script. */
+test("a home responde com a CSP em modo de observação", async () => {
+  const response = await fetchRoute("/");
+  const csp = response.headers.get("content-security-policy-report-only") ?? "";
+  assert.equal(response.headers.get("content-security-policy"), null);
+  for (const diretiva of ["default-src 'self'", "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'"]) {
+    assert.ok(csp.includes(diretiva), `${diretiva} ausente na CSP`);
+  }
+});
 
 test("renderiza a página inicial da Nascente", async () => {
   const response = await fetchRoute("/");
@@ -153,6 +164,110 @@ test("página real não é servida como a de erro", async () => {
   const titles = [...head.matchAll(/<title[^>]*>([\s\S]*?)<\/title>/gi)].map((m) => m[1]);
   assert.equal(titles.length, 1);
   assert.doesNotMatch(titles[0], /não encontrada/i, "página real recebeu o título do 404");
+});
+
+/* O `/sitemap.xml` respondia 200 com um `urlset` vazio de 110 bytes, enquanto
+   o `app/robots.ts` já tinha decidido, por escrito, não ter mapa nenhum. Duas
+   respostas para a mesma pergunta. O `app/sitemap.ts` foi apagado em
+   09/09/2026 e a decisão passou a morar só no robots. Este teste é o que
+   impede o arquivo de voltar sem que alguém repare. */
+test("/sitemap.xml não existe: a decisão de não ter mapa mora só no robots", async () => {
+  const response = await fetchRoute("/sitemap.xml");
+  assert.notEqual(response.status, 200, "o sitemap voltou a responder 200");
+
+  const robots = await fetchRoute("/robots.txt");
+  const corpo = await robots.text();
+  assert.equal(robots.status, 200);
+  assert.doesNotMatch(corpo, /sitemap/i, "o robots.txt passou a anunciar um mapa que não existe");
+});
+
+/* Nenhum travessão no que o visitante lê.
+
+   Este portfólio existe para mostrar o registro de escrita da casa, e o
+   registro não tem travessão em lugar nenhum que chegue ao visitante, nem
+   dentro de `alt` e `aria-label`, que o leitor de tela lê em voz alta. Em
+   09/09/2026 eram 14 em texto de interface mais um `content: "—"` no CSS.
+   Comentário de código não conta e não aparece aqui: o que este teste mede é
+   o documento servido. */
+test("nenhuma rota entrega travessão ao visitante", async () => {
+  const rotas = [
+    "/", "/produtos", "/colecoes", "/guia-olfativo", "/sobre", "/ajuda",
+    "/entregas-e-trocas", "/contato", "/sacola", "/checkout", "/privacidade",
+    "/produtos/colonia-chuva-clara", "/colecoes/chuva-clara",
+    "/pagina-que-nao-existe",
+  ];
+
+  const encontrados = [];
+  for (const rota of rotas) {
+    const html = await (await fetchRoute(rota)).text();
+    const quantos = (html.match(/—/g) || []).length;
+    if (quantos > 0) encontrados.push(`${rota}: ${quantos}`);
+  }
+
+  assert.deepEqual(encontrados, [], `travessão no documento servido em ${encontrados.join(", ")}`);
+});
+
+/* O cartão de link se confere pelos BYTES, nunca pelo código HTTP (regra
+   9.30). Rota de imagem que responde não é o mesmo que imagem que existe: o
+   `og:image` da Varanda respondeu 200, com content-type de imagem, e zero
+   byte, por semanas.
+
+   Aqui a peça é um arquivo estático, então o teste lê o arquivo do disco e
+   cobra três coisas: assinatura JPEG, dimensão real no marcador SOF e corpo
+   com tamanho de imagem de verdade. Depois compara com o que a head declara,
+   que é o outro lado do mesmo erro: declarar 1200x630 e servir outra coisa. */
+test("o cartão de link é JPEG de verdade, com a dimensão que a head declara", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const caminho = new URL("../public/images/og/cartao-1200x630.jpg", import.meta.url);
+  const bytes = await readFile(caminho);
+
+  assert.ok(bytes.length > 20_000, `cartão com ${bytes.length} bytes, pequeno demais para ser imagem`);
+  assert.ok(bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff, "sem assinatura JPEG (FF D8 FF)");
+  assert.ok(bytes[bytes.length - 2] === 0xff && bytes[bytes.length - 1] === 0xd9, "sem terminador JPEG (FF D9)");
+
+  /* Percorre os segmentos até o SOF, que é quem carrega a dimensão real. */
+  let i = 2;
+  let real = null;
+  while (i < bytes.length - 1) {
+    if (bytes[i] !== 0xff) { i += 1; continue; }
+    const marcador = bytes[i + 1];
+    if (marcador === 0xd8 || marcador === 0x01 || (marcador >= 0xd0 && marcador <= 0xd7)) { i += 2; continue; }
+    const tamanho = bytes.readUInt16BE(i + 2);
+    const ehSof = marcador >= 0xc0 && marcador <= 0xcf && marcador !== 0xc4 && marcador !== 0xc8 && marcador !== 0xcc;
+    if (ehSof) {
+      real = { altura: bytes.readUInt16BE(i + 5), largura: bytes.readUInt16BE(i + 7) };
+      break;
+    }
+    i += 2 + tamanho;
+  }
+
+  assert.ok(real, "marcador SOF não encontrado: o arquivo não é JPEG legível");
+  assert.deepEqual(real, { largura: 1200, altura: 630 });
+
+  /* E o que a página declara. Só a head, pelo motivo de sempre: o payload do
+     RSC repete metadado como dado serializado mais abaixo. */
+  const html = await (await fetchRoute("/")).text();
+  const head = html.slice(0, html.indexOf("</head>"));
+
+  const imagens = [...head.matchAll(/<meta property="og:image" content="([^"]+)"/g)].map((m) => m[1]);
+  assert.equal(imagens.length, 1, `esperava uma og:image na head, achei ${imagens.length}`);
+  assert.match(imagens[0], /\/images\/og\/cartao-1200x630\.jpg$/);
+
+  const larguras = [...head.matchAll(/<meta property="og:image:width" content="([^"]+)"/g)].map((m) => m[1]);
+  const alturas = [...head.matchAll(/<meta property="og:image:height" content="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(larguras, ["1200"], "og:image:width não bate com o arquivo");
+  assert.deepEqual(alturas, ["630"], "og:image:height não bate com o arquivo");
+});
+
+/* A borda da Cloudflare injeta o beacon do Web Analytics em toda resposta com
+   `accept: text/html`, e ele não passa por este repositório. Com `script-src
+   'self'` puro, fechar a política mataria a analítica em silêncio. Estes dois
+   endereços são a liberação, e o teste existe para que ninguém os apague
+   achando que são terceiro esquecido. */
+test("a CSP libera o beacon da própria borda", async () => {
+  const csp = (await fetchRoute("/")).headers.get("content-security-policy-report-only") ?? "";
+  assert.match(csp, /script-src[^;]*https:\/\/static\.cloudflareinsights\.com/);
+  assert.match(csp, /connect-src[^;]*https:\/\/cloudflareinsights\.com/);
 });
 
 test("HTTP puro não entrega página: redireciona para HTTPS", async () => {

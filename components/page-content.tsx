@@ -5,6 +5,19 @@ import { useState } from "react";
 import { SIZES } from "@/lib/images";
 import { Picture, Reveal } from "./ui";
 
+/**
+ * O endereço de atendimento aparece em duas páginas e precisa ser um domínio
+ * que **não entrega**.
+ *
+ * Estava apontando para `nascente.com.br`, que é domínio registrado, no ar e
+ * com servidor próprio: de terceiro, portanto. Quem levasse esta demonstração
+ * a sério escreveria para um estranho.
+ *
+ * `.example` é TLD reservado pela IANA (RFC 2606) exatamente para exemplo e
+ * documentação. Não é delegado, não resolve e nunca vai pertencer a ninguém.
+ */
+const EMAIL_ATENDIMENTO = "atendimento@nascente.example";
+
 /* ------------------------------------------------------------- a casa ----- */
 
 /** Ícone de cada marco. Traço fino, mesma linguagem do resto da interface. */
@@ -90,7 +103,7 @@ export function AboutPage() {
             <p>
               A Nascente começou em 2021, num apartamento de esquina na Vila
               Madalena, a partir de uma percepção incômoda: a maior barreira
-              para comprar perfume nunca foi quanto ele custa — é não fazer
+              para comprar perfume nunca foi quanto ele custa. É não fazer
               ideia do que se está levando para casa.
             </p>
             <p>
@@ -110,13 +123,13 @@ export function AboutPage() {
             <p>
               Chuva Clara, Folha Quente e Sol de Dentro levaram catorze meses
               para sair do papel. Foram trinta e uma versões descartadas até as
-              três primeiras aprovadas — a maioria caiu por durar pouco na pele
+              três primeiras aprovadas. A maioria caiu por durar pouco na pele
               ou por mudar de caráter depois da primeira hora.
             </p>
             <p>
               Em 2024 veio a decisão que definiu a casa: em vez de lançar
               coleções novas a cada estação, levamos as mesmas três para
-              sabonete, hidratante, óleo, vela e difusor. A lógica é simples —
+              sabonete, hidratante, óleo, vela e difusor. A lógica é simples:
               quem gosta de um aroma não quer trocá-lo, quer encontrá-lo em
               mais lugares.
             </p>
@@ -166,7 +179,7 @@ const FAQ = [
   },
   {
     q: "Os produtos de uma mesma coleção têm exatamente o mesmo cheiro?",
-    a: "Sim. Colônia, sabonete, hidratante, óleo, vela, difusor e spray de uma coleção partem da mesma composição. O que muda é a concentração e a forma de aplicação — por isso a intensidade varia entre eles.",
+    a: "Sim. Colônia, sabonete, hidratante, óleo, vela, difusor e spray de uma coleção partem da mesma composição. O que muda é a concentração e a forma de aplicação. Por isso a intensidade varia entre eles.",
   },
   {
     q: "Como funciona a escala de intensidade?",
@@ -248,7 +261,7 @@ export function ShippingPage() {
 
         <h2>Como solicitar</h2>
         <p>
-          Escreva para <strong>atendimento@nascente.com.br</strong> informando
+          Escreva para <strong>{EMAIL_ATENDIMENTO}</strong> informando
           o número do pedido e o motivo. A resposta sai em até 2 dias úteis.
         </p>
       </div>
@@ -286,7 +299,7 @@ export function ContactPage() {
         <p className="eyebrow">Contato</p>
         <h1>Fale com a casa.</h1>
         <p className="lede">
-          Atendimento por e-mail em <strong>atendimento@nascente.com.br</strong>,
+          Atendimento por e-mail em <strong>{EMAIL_ATENDIMENTO}</strong>,
           de segunda a sexta, com resposta em até 2 dias úteis.
         </p>
       </div>
@@ -438,7 +451,7 @@ export function NotFoundPage() {
       <div className="empty-state" style={{ paddingBlock: "var(--s-10)" }}>
         <p className="eyebrow">Erro 404</p>
         <h1 style={{ fontSize: "var(--t-2xl)" }}>Esta página não existe.</h1>
-        <p>O endereço pode ter mudado de lugar — ou nunca ter existido.</p>
+        <p>O endereço pode ter mudado de lugar, ou nunca ter existido.</p>
         <div style={{ display: "flex", gap: "var(--s-3)", flexWrap: "wrap", justifyContent: "center" }}>
           <Link href="/" className="btn"><span>Voltar ao início</span></Link>
           <Link href="/produtos" className="btn btn--ghost"><span>Ver a loja</span></Link>

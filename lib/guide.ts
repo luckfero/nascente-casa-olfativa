@@ -32,7 +32,7 @@ export const questions: GuideQuestion[] = [
     id: "momento",
     eyebrow: "Primeiro eixo",
     prompt: "Em que momento do dia você quer ser lembrado?",
-    help: "A hora em que a fragrância aparece muda tudo — luz, temperatura e ritmo são diferentes.",
+    help: "A hora em que a fragrância aparece muda tudo: luz, temperatura e ritmo são diferentes.",
     options: [
       {
         id: "manha",

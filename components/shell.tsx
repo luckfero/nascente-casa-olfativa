@@ -306,9 +306,16 @@ export function Footer() {
           <p className="footer__tagline">
             Perfumaria autoral para o corpo, a casa e os momentos entre os dois.
           </p>
+          {/* O aviso de demonstração é o mesmo do formulário de contato, com as
+              mesmas palavras: "Nesta demonstração, nada foi enviado a um
+              servidor". Sem ele, o rodapé afirmava ao visitante uma inscrição
+              que não existe em servidor nenhum, e o site falava com duas vozes
+              sobre o mesmo assunto. O "Até breve" saiu junto: é promessa de
+              contato futuro que esta demonstração não tem como cumprir. */}
           {signed ? (
             <p style={{ marginTop: "var(--s-4)", fontSize: "var(--t-sm)" }} role="status">
-              Inscrição registrada. Até breve.
+              <strong>Inscrição registrada.</strong> Nesta demonstração, nada foi
+              enviado a um servidor.
             </p>
           ) : (
             <form

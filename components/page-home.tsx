@@ -168,7 +168,7 @@ export function HomePage() {
               <h2>Não é preciso sentir antes para escolher bem.</h2>
               <p>
                 Conte como você quer se sentir e em que momento pretende usar.
-                O guia aproxima você da família que faz mais sentido — sem
+                O guia aproxima você da família que faz mais sentido, sem
                 exigir vocabulário técnico.
               </p>
               <Link href="/guia-olfativo" className="btn btn--on-dark">

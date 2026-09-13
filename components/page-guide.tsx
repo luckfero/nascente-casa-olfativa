@@ -61,7 +61,7 @@ export function GuidePage() {
             <h1>Cinco perguntas até a sua atmosfera.</h1>
             <p className="lede">
               Nenhuma delas exige vocabulário de perfumaria. Falamos de horário,
-              temperatura, presença e memória — e a partir disso cruzamos as
+              temperatura, presença e memória, e a partir disso cruzamos as
               três coleções da casa.
             </p>
             <ol className="quiz-intro__steps">
@@ -190,7 +190,7 @@ export function GuidePage() {
             <p className="affinity__note">
               {decisive
                 ? `Suas escolhas apontaram com folga para ${winner.name}.`
-                : `${winner.name} venceu por pouco — ${runnerUp?.name} também combina com o que você descreveu e vale conhecer.`}
+                : `${winner.name} venceu por pouco. ${runnerUp?.name} também combina com o que você descreveu e vale conhecer.`}
             </p>
           </div>
 
