@@ -32,14 +32,16 @@ interface WorkerHandler {
  *                  simulado, sem campo financeiro); sem o cabeçalho, um
  *                  script injetado poderia pedir.
  *   COOP           isola a janela de quem a abriu, cortando acesso cruzado.
- *   CSP            em modo de observação: não bloqueia nada, só registra no
- *                  console do navegador o que violaria a política. Depois de
- *                  uma temporada assim, a chave vira `Content-Security-Policy`
- *                  e passa a valer de verdade. `'unsafe-inline'` é obrigatório
- *                  enquanto o vinext emitir script inline sem nonce.
+ *   CSP            valendo desde 25/09/2026: o navegador bloqueia o que a
+ *                  política não lista. `'unsafe-inline'` em `script-src` é
+ *                  obrigatório enquanto o vinext emitir script inline sem
+ *                  nonce, e por isso ela não segura script inline injetado.
+ *                  O que ela fecha é `object-src`, `base-uri`, `form-action`,
+ *                  `frame-ancestors` e a lista de hosts de onde vem script,
+ *                  imagem, fonte e conexão.
  *
- * ANTES DE TIRAR O `-Report-Only`, LEIA ISTO. O código do site não carrega
- * nada de terceiro, mas a resposta que chega ao visitante carrega: medido em
+ * ANTES DE MEXER NA POLÍTICA, LEIA ISTO. O código do site não carrega nada de
+ * terceiro, mas a resposta que chega ao visitante carrega: medido em
  * 2026-09-09, toda requisição com `accept: text/html` volta de produção com um
  * `<script src="https://static.cloudflareinsights.com/beacon.min.js/...">` que
  * a borda injeta (Web Analytics, ligado no painel da Cloudflare, não neste
@@ -54,19 +56,38 @@ interface WorkerHandler {
  *     alguém escolheu incluir: são a camada que responde antes do Worker.
  *   - **Entram em toda página sem passar por este repositório.** Ninguém vai
  *     encontrá-los lendo o código, e por isso ninguém ia lembrar deles na
- *     hora de fechar a política.
- *   - **Sem estas duas linhas, a política derruba a analítica sem avisar.**
- *     O script é barrado por `script-src` e o envio dele por `connect-src`,
- *     em silêncio: os números simplesmente param de chegar, e a única pista
- *     é uma linha no console de quem por acaso estiver com ele aberto.
+ *     hora de mexer na política.
+ *   - **Sem o endereço em `script-src`, a política derruba a analítica sem
+ *     avisar.** O `beacon.min.js` é barrado e os números simplesmente param
+ *     de chegar; a única pista é uma linha no console de quem por acaso
+ *     estiver com ele aberto.
  *
- * A política continua em `-Report-Only` de propósito. **Promover para
- * `Content-Security-Policy` não é decisão deste arquivo hoje**: primeiro
- * publica-se, olha-se o console em produção por uma temporada, e só então se
- * fecha. Enquanto for observação, nada quebra e a violação só é registrada,
- * que é exatamente o sinal que a temporada existe para dar.
+ * Para onde o beacon ENVIA é outra conversa, e foi aqui que este comentário
+ * esteve errado até 25/09/2026, quando dizia que o envio seria barrado por
+ * `connect-src`. Não seria. O `data-cf-beacon` injetado traz
+ * `"version":"2024.11.0"`, e com versão o beacon manda para `/cdn-cgi/rum` da
+ * PRÓPRIA origem (XHR e sendBeacon), que o `'self'` já cobre. Conferido no
+ * `beacon.min.js` e medido nos dois motores: nenhuma requisição foi para
+ * `cloudflareinsights.com`. Esse endereço só seria usado por um snippet sem
+ * `version`, que envia para `https://cloudflareinsights.com/cdn-cgi/rum`. Ele
+ * fica em `connect-src` como seguro barato: se a borda trocar o snippet, a
+ * analítica continua chegando.
+ *
+ * A política passou por `-Report-Only` de 09/09 a 25/09/2026 e foi promovida
+ * depois de medida em produção, em Chromium e WebKit, desktop e celular, com
+ * catálogo, filtros, sacola, checkout, guia e 404 exercitados: zero violação
+ * do site, também com o cabeçalho trocado para valer no navegador de medição.
+ * Ficar mais tempo em relatório não traria nada: sem `report-to` nem
+ * `report-uri`, o modo relatório não coleta violação de visitante nenhum, e o
+ * WebKit ainda escrevia em toda página um erro avisando que a política
+ * "will have no effect".
+ *
+ * Agora ela BLOQUEIA. Se o painel da Cloudflare ligar outra injeção de borda
+ * (Rocket Loader, Zaraz, Turnstile de `challenges.cloudflare.com`) ou trocar
+ * o snippet do Web Analytics, a política precisa ser revista antes, porque o
+ * que ela não listar deixa de carregar.
  */
-const CSP_EM_OBSERVACAO = [
+const POLITICA_DE_CONTEUDO = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
   "style-src 'self' 'unsafe-inline'",
@@ -77,23 +98,23 @@ const CSP_EM_OBSERVACAO = [
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
+  "upgrade-insecure-requests",
 ].join("; ");
 
-/* `upgrade-insecure-requests` SAIU daqui em 09/09/2026, e volta junto com a
-   promoção da política.
+/* `upgrade-insecure-requests` ficou de fora de 09/09 a 25/09/2026, enquanto a
+   política era `-Report-Only`. Medido no console do Chrome: "The Content
+   Security Policy directive upgrade-insecure-requests is ignored when
+   delivered in a report-only policy". Em modo relatório ela não fazia nada e
+   ainda escrevia um erro a cada carregamento, atrapalhando justamente a
+   conferência que autorizou a promoção.
 
-   Medido no console do Chrome: "The Content Security Policy directive
-   upgrade-insecure-requests is ignored when delivered in a report-only
-   policy". Em modo relatório ela não faz absolutamente nada, e ainda escreve
-   um erro a cada carregamento de página. Isso atrapalha justamente a
-   conferência que autoriza promover a política, que é abrir o console e não
-   achar violação: com esta linha, toda página já começa com uma. Deixá-la
-   aqui é pagar ruído por zero proteção.
-
-   Quando o cabeçalho virar `Content-Security-Policy` sem `-Report-Only`, ela
-   entra de volta na mesma linha. */
+   Voltou junto com o `Content-Security-Policy`, que é onde ela age: um
+   endereço `http://` que escape para dentro de uma página passa a ser pedido
+   em `https://`, em vez de virar conteúdo misto. Medida antes de voltar,
+   nos dois motores e com A/B no WebKit com e sem ela: nenhum efeito
+   colateral, porque hoje o site não pede nada por `http://`. */
 const cabecalhosDeSeguranca: Record<string, string> = {
-  "Content-Security-Policy-Report-Only": CSP_EM_OBSERVACAO,
+  "Content-Security-Policy": POLITICA_DE_CONTEUDO,
   "Cross-Origin-Opener-Policy": "same-origin",
   "Permissions-Policy": "camera=(), geolocation=(), microphone=(), payment=(), usb=()",
   "Referrer-Policy": "strict-origin-when-cross-origin",

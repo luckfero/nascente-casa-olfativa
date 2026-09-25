@@ -45,16 +45,40 @@ for (const [rotulo, rota] of [
   });
 }
 
-/* A CSP está em observação: o que o teste protege é a existência dela e as
-   diretivas que já valeriam mesmo com `unsafe-inline` no script. */
-test("a home responde com a CSP em modo de observação", async () => {
-  const response = await fetchRoute("/");
-  const csp = response.headers.get("content-security-policy-report-only") ?? "";
-  assert.equal(response.headers.get("content-security-policy"), null);
-  for (const diretiva of ["default-src 'self'", "object-src 'none'", "base-uri 'self'", "form-action 'self'", "frame-ancestors 'none'"]) {
-    assert.ok(csp.includes(diretiva), `${diretiva} ausente na CSP`);
-  }
-});
+/* A CSP vale desde 25/09/2026; até ali era `-Report-Only`. O teste cobra três
+   coisas: que o cabeçalho é o que bloqueia, que o de relatório não voltou
+   junto (com os dois, o navegador avalia duas políticas e o WebKit volta a
+   escrever em toda página que a de relatório "will have no effect"), e as
+   diretivas que já valem mesmo com `unsafe-inline` no script, mais o
+   `upgrade-insecure-requests`, que só age em política que bloqueia.
+
+   O 404 entra porque é o caso fácil de esquecer: ele é remontado no worker, e
+   uma `new Response` nasce sem os cabeçalhos do original. */
+for (const [rotulo, rota, status] of [
+  ["a home", "/", 200],
+  ["a página 404", "/pagina-que-nao-existe", 404],
+]) {
+  test(`${rotulo} responde com a CSP valendo, sem a de relatório`, async () => {
+    const response = await fetchRoute(rota);
+    assert.equal(response.status, status);
+    assert.equal(
+      response.headers.get("content-security-policy-report-only"),
+      null,
+      `${rota} ainda manda Content-Security-Policy-Report-Only`,
+    );
+    const csp = response.headers.get("content-security-policy") ?? "";
+    for (const diretiva of [
+      "default-src 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+      "upgrade-insecure-requests",
+    ]) {
+      assert.ok(csp.includes(diretiva), `${diretiva} ausente na CSP de ${rota}`);
+    }
+  });
+}
 
 test("renderiza a página inicial da Nascente", async () => {
   const response = await fetchRoute("/");
@@ -261,11 +285,13 @@ test("o cartão de link é JPEG de verdade, com a dimensão que a head declara",
 
 /* A borda da Cloudflare injeta o beacon do Web Analytics em toda resposta com
    `accept: text/html`, e ele não passa por este repositório. Com `script-src
-   'self'` puro, fechar a política mataria a analítica em silêncio. Estes dois
-   endereços são a liberação, e o teste existe para que ninguém os apague
-   achando que são terceiro esquecido. */
+   'self'` puro, a política valendo mata a analítica em silêncio. O endereço
+   de `script-src` é o que carrega o beacon; o de `connect-src` é seguro para
+   um snippet sem `version`, porque o atual envia para `/cdn-cgi/rum` da
+   própria origem. O teste existe para que ninguém os apague achando que são
+   terceiro esquecido. */
 test("a CSP libera o beacon da própria borda", async () => {
-  const csp = (await fetchRoute("/")).headers.get("content-security-policy-report-only") ?? "";
+  const csp = (await fetchRoute("/")).headers.get("content-security-policy") ?? "";
   assert.match(csp, /script-src[^;]*https:\/\/static\.cloudflareinsights\.com/);
   assert.match(csp, /connect-src[^;]*https:\/\/cloudflareinsights\.com/);
 });
