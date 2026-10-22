@@ -381,3 +381,150 @@ test("todo SVG do projeto é XML válido", async () => {
     assert.doesNotMatch(semComentario, /&(?!amp;|lt;|gt;|quot;|apos;|#)/, `${nome}: & sem escapar`);
   }
 });
+
+/* ---- Transição de página pulada ----
+   O clique duplo num link abre duas View Transitions seguidas, e o navegador
+   pula a primeira rejeitando a `ready` dela. Sem tratamento, isso aparecia no
+   console da demonstração como "Uncaught (in promise) AbortError". O Node não
+   tem View Transition, então o teste usa um dublê do `document`, e o dublê
+   faz o que o Chromium e o WebKit fizeram na medição de 21/10/2026 (9.34): a
+   transição nova pula a anterior e rejeita a `ready` dela com DOMException
+   AbortError; o callback da pulada roda mesmo assim; `updateCallbackDone` e
+   `finished` acompanham o callback, e se ele falhar as três rejeitam com o
+   erro dele. */
+function documentoComTransicao() {
+  let ativa = null;
+  const callbacksRodados = [];
+  return {
+    callbacksRodados,
+    startViewTransition(atualizar) {
+      if (ativa) ativa.pular(new DOMException("Transition was skipped. New ViewTransition started", "AbortError"));
+      let pular;
+      const pulo = new Promise((_, rejeitar) => { pular = rejeitar; });
+      const updateCallbackDone = new Promise((ok) => setTimeout(ok, 0))
+        .then(() => { callbacksRodados.push(atualizar); return atualizar(); })
+        .then(() => undefined);
+      const transicao = {
+        updateCallbackDone,
+        ready: Promise.race([updateCallbackDone, pulo]),
+        finished: updateCallbackDone.then(() => undefined),
+        pular,
+        skipTransition: () => pular(new DOMException("Transition was skipped. skipTransition() called", "AbortError")),
+      };
+      ativa = transicao;
+      return transicao;
+    },
+  };
+}
+
+/* Troca, pelo tempo do teste, quem escuta promessa rejeitada sem tratamento:
+   o executor do `node --test` contaria a rejeição esperada como falha. */
+async function rejeicoesSemTratamento(fazer) {
+  const anteriores = process.listeners("unhandledRejection");
+  process.removeAllListeners("unhandledRejection");
+  const soltas = [];
+  const anotar = (motivo) => soltas.push(motivo);
+  process.on("unhandledRejection", anotar);
+  try {
+    await fazer();
+    await new Promise((ok) => setTimeout(ok, 50));
+  } finally {
+    process.off("unhandledRejection", anotar);
+    for (const ouvinte of anteriores) process.on("unhandledRejection", ouvinte);
+  }
+  return soltas;
+}
+
+const transicaoDePagina = () => import(new URL("../lib/transicao-de-pagina.ts", import.meta.url).href);
+
+test("clique duplo num link: a transição pulada não deixa promessa rejeitada solta", async () => {
+  const { abrirTransicao } = await transicaoDePagina();
+  const documento = documentoComTransicao();
+  const destinos = [];
+  let primeira;
+
+  const soltas = await rejeicoesSemTratamento(async () => {
+    primeira = abrirTransicao(documento, async () => { destinos.push("/sobre"); });
+    abrirTransicao(documento, async () => { destinos.push("/sobre"); });
+  });
+
+  /* O dublê recusou como o navegador recusa: sem isto o teste passaria por
+     não ter havido pulo nenhum. */
+  const motivo = await primeira.ready.then(() => null, (erro) => erro);
+  assert.ok(motivo instanceof DOMException, "a ready da transição pulada devia rejeitar");
+  assert.equal(motivo.name, "AbortError");
+
+  assert.deepEqual(soltas.map((erro) => `${erro?.name}: ${erro?.message}`), [], "promessa rejeitada sem tratamento");
+  /* A troca de página acontece igual: os dois callbacks rodaram. */
+  assert.equal(documento.callbacksRodados.length, 2);
+  assert.deepEqual(destinos, ["/sobre", "/sobre"]);
+});
+
+test("o site publicado só abre transição pelo caminho que trata o pulo", async () => {
+  /* Os testes acima provam a função; este prova que o site usa a função. Lê
+     o JavaScript que o build entrega ao navegador: toda chamada a
+     `startViewTransition` tem que vir seguida do tratamento da `ready`. Se o
+     componente voltar a chamar `document.startViewTransition` direto, a
+     chamada nova aparece aqui sem o `.ready.catch`. */
+  const { readdir, readFile } = await import("node:fs/promises");
+  const pasta = new URL("../dist/client/assets/", import.meta.url);
+  const chamadas = [];
+  for (const nome of (await readdir(pasta)).filter((n) => n.endsWith(".js"))) {
+    const codigo = await readFile(new URL(nome, pasta), "utf8");
+    for (const achado of codigo.matchAll(/\.startViewTransition\(/g)) {
+      chamadas.push([nome, codigo.slice(achado.index, achado.index + 120)]);
+    }
+  }
+  assert.equal(chamadas.length, 1, `esperava uma chamada a startViewTransition, achei ${chamadas.length}`);
+  assert.match(chamadas[0][1], /\.ready\.catch\(/, `${chamadas[0][0]}: chamada sem tratamento da ready`);
+});
+
+test("só o pulo é engolido: erro de verdade no callback continua aparecendo", async () => {
+  const { abrirTransicao, ignorarPulo } = await transicaoDePagina();
+
+  /* Os três motivos com que o Chromium e o WebKit pulam uma transição
+     (medidos em 21/10/2026: outra transição, foto que falhou, callback que
+     demorou demais) passam calados. Qualquer outra coisa é relançada. */
+  for (const nome of ["AbortError", "InvalidStateError", "TimeoutError"]) {
+    assert.doesNotThrow(() => ignorarPulo(new DOMException("pulou", nome)), nome);
+  }
+  assert.throws(() => ignorarPulo(new DOMException("outra coisa", "NotAllowedError")), /outra coisa/);
+  assert.throws(() => ignorarPulo(new TypeError("router quebrou")), TypeError);
+
+  /* Com o callback falhando, as três promessas rejeitam. O teste trata
+     `updateCallbackDone` e `finished` ele mesmo, para sobrar só o que sai da
+     `ready`: ela tem que continuar avisando, e não ser engolida junto. */
+  const soltas = await rejeicoesSemTratamento(async () => {
+    const transicao = abrirTransicao(documentoComTransicao(), async () => {
+      throw new TypeError("router quebrou");
+    });
+    transicao.updateCallbackDone.catch(() => {});
+    transicao.finished.catch(() => {});
+  });
+  assert.deepEqual(soltas.map((erro) => `${erro?.name}: ${erro?.message}`), ["TypeError: router quebrou"]);
+});
+
+test("as barras do guia crescem por scaleX a partir da esquerda, e não por width", async () => {
+  /* Animar `width` recalcula o layout a cada quadro. O preenchimento não tem
+     vizinho dentro da trilha, então escalar desenha o mesmo sem layout. Os
+     dois jeitos de errar que este teste segura: esquecer o
+     `transform-origin` (a barra cresceria do meio para os lados) e passar a
+     porcentagem crua para a escala (`scaleX(40)` estoura a trilha, e com o
+     `overflow: hidden` dela a barra aparece cheia desde a primeira
+     pergunta). */
+  const { readFile } = await import("node:fs/promises");
+  const css = await readFile(new URL("../app/editorial.css", import.meta.url), "utf8");
+  const guia = await readFile(new URL("../components/page-guide.tsx", import.meta.url), "utf8");
+
+  for (const seletor of [".quiz__bar span", ".affinity__track span"]) {
+    const regra = new RegExp(`${seletor.replace(/[.]/g, "\\.")}\\s*\\{([^}]*)\\}`).exec(css)?.[1];
+    assert.ok(regra, `regra ${seletor} não encontrada`);
+    assert.match(regra, /transition:\s*transform\s/, `${seletor} devia transicionar transform`);
+    assert.doesNotMatch(regra, /transition:[^;]*\bwidth\b/, `${seletor} ainda transiciona width`);
+    assert.match(regra, /transform-origin:\s*left\b/, `${seletor} sem transform-origin à esquerda`);
+  }
+
+  assert.doesNotMatch(guia, /style=\{\{\s*width:/, "ainda há barra com width no estilo");
+  assert.match(guia, /transform: `scaleX\(\$\{progress \/ 100\}\)`/, "barra do quiz sem a escala de 0 a 1");
+  assert.match(guia, /transform: `scaleX\(\$\{entry\.percent \/ 100\}\)`/, "barra de afinidade sem a escala de 0 a 1");
+});

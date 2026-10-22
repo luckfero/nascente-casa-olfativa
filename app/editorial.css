@@ -359,11 +359,18 @@
   background: var(--line);
   overflow: hidden;
 }
+/* O preenchimento cresce por `scaleX`, e não por `width`: ele não tem vizinho
+   dentro da trilha, então escalar desenha o mesmo sem recalcular o layout a
+   cada quadro. A escala, de 0 a 1, vem de components/page-guide.tsx. O
+   `transform-origin` à esquerda é o que faz a barra crescer do começo, como a
+   largura crescia; sem ele ela cresceria do meio para os lados. Vale igual
+   para a afinidade, mais abaixo. */
 .quiz__bar span {
   display: block;
   height: 100%;
   background: var(--accent-warm);
-  transition: width var(--d-slow) var(--ease-drape);
+  transform-origin: left center;
+  transition: transform var(--d-slow) var(--ease-drape);
 }
 .quiz__counter {
   font-size: var(--t-2xs);
@@ -515,7 +522,8 @@
   display: block;
   height: 100%;
   background: var(--line-strong);
-  transition: width var(--d-drape) var(--ease-drape);
+  transform-origin: left center;
+  transition: transform var(--d-drape) var(--ease-drape);
 }
 .affinity__track span[data-winner="true"] { background: var(--accent-warm); }
 

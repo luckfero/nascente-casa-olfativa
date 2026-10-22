@@ -88,7 +88,7 @@ export function GuidePage() {
           <div className="quiz__head">
             <div className="quiz__progress">
               <div className="quiz__bar">
-                <span style={{ width: `${progress}%` }} />
+                <span style={{ transform: `scaleX(${progress / 100})` }} />
               </div>
               <p className="quiz__counter">
                 Pergunta {step + 1} de {questions.length}
@@ -206,7 +206,7 @@ export function GuidePage() {
                   </div>
                   <div className="affinity__track">
                     <span
-                      style={{ width: `${entry.percent}%` }}
+                      style={{ transform: `scaleX(${entry.percent / 100})` }}
                       data-winner={entry.slug === winner.slug}
                     />
                   </div>

@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
+import { abrirTransicao } from "@/lib/transicao-de-pagina";
 
 /**
  * Transição entre páginas usando a View Transitions API.
@@ -55,7 +56,12 @@ export default function ViewTransitions() {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
       event.preventDefault();
-      document.startViewTransition(
+      /* `abrirTransicao` e não `document.startViewTransition` direto: o
+         clique duplo num link abre uma segunda transição, o navegador pula a
+         primeira e rejeita a `ready` dela. Sem tratamento, isso era erro no
+         console (ver lib/transicao-de-pagina.ts). */
+      abrirTransicao(
+        document,
         () =>
           new Promise<void>((resolve) => {
             resolver.current = resolve;
